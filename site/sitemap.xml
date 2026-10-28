@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://slikkdev.github.io/Ansy/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slikkdev.github.io/Ansy/"/>
+    <xhtml:link rel="alternate" hreflang="he" href="https://slikkdev.github.io/Ansy/he/"/>
+  </url>
+  <url>
+    <loc>https://slikkdev.github.io/Ansy/he/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slikkdev.github.io/Ansy/"/>
+    <xhtml:link rel="alternate" hreflang="he" href="https://slikkdev.github.io/Ansy/he/"/>
+  </url>
+</urlset>
