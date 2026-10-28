@@ -159,6 +159,8 @@ function Transcript({ report }: { report: ReaderReport }) {
           aria-label={t('exp.reader.transcript')}
           data-transcript
           // A scrolling region the keyboard can reach (WCAG 2.1.1), like a terminal's history.
+          // The a11y lint rule's own docs make this exact exception for scroll containers.
+          // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
           tabIndex={0}
         >
           {reader.transcript.map((line, i) => {
