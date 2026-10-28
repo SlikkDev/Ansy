@@ -90,7 +90,8 @@ test('opens a site and reports its title', async () => {
   const address = page.getByRole('textbox', { name: 'Site address' })
   await address.fill(shop)
   await address.press('Enter')
-  await expect(page.locator('[aria-live="polite"]')).toHaveText('Sample shop')
+  // The first live region is the site's status; the panel's tabs have their own.
+  await expect(page.locator('[aria-live="polite"]').first()).toHaveText('Sample shop')
   await expect(address).toHaveValue(/127\.0\.0\.1:\d+$/)
   await expect(page.getByRole('button', { name: 'Reload' })).toBeEnabled()
   await expect(page.getByRole('button', { name: 'Back' })).toBeDisabled()

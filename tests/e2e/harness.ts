@@ -25,15 +25,22 @@ export interface Harness {
   userData: string
   /** Types the shop's address into Ansy and waits for it to load. */
   openShop(): Promise<void>
+  /** Serves other content for one of the shop's files, or the file itself again with null: a "fix" for check again. */
+  serve(file: string, body: string | null): void
   close(): Promise<void>
 }
 
-export async function serveShop(): Promise<{ server: Server; url: string }> {
+export async function serveShop(): Promise<{
+  server: Server
+  url: string
+  overrides: Map<string, string>
+}> {
+  const overrides = new Map<string, string>()
   const server = createServer(async (req, res) => {
     const file =
       normalize(new URL(req.url ?? '/', 'http://x').pathname).replace(/^\/+/, '') || 'index.html'
     try {
-      const body = await readFile(join(fixtures, file))
+      const body = overrides.get(file) ?? (await readFile(join(fixtures, file)))
       res.writeHead(200, { 'content-type': types[extname(file)] ?? 'application/octet-stream' })
       res.end(body)
     } catch {
@@ -43,12 +50,12 @@ export async function serveShop(): Promise<{ server: Server; url: string }> {
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
   const address = server.address()
   if (!address || typeof address === 'string') throw new Error('no port')
-  return { server, url: `http://127.0.0.1:${address.port}/` }
+  return { server, url: `http://127.0.0.1:${address.port}/`, overrides }
 }
 
 /** Launches the built app with a fresh data folder, in English. */
 export async function launchAnsy(prefix = 'ansy-e2e-'): Promise<Harness> {
-  const { server, url } = await serveShop()
+  const { server, url, overrides } = await serveShop()
   const userData = await mkdtemp(join(tmpdir(), prefix))
   const args = ['.']
   // A container running as root cannot use Chromium's sandbox; the app skips enableSandbox() then.
@@ -70,6 +77,10 @@ export async function launchAnsy(prefix = 'ansy-e2e-'): Promise<Harness> {
       await addressBar.fill(url)
       await addressBar.press('Enter')
       await expect(page.locator('[aria-live="polite"]').first()).toHaveText('Sample shop')
+    },
+    serve(file, body) {
+      if (body === null) overrides.delete(file)
+      else overrides.set(file, body)
     },
     async close() {
       await app.close()

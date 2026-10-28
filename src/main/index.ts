@@ -1,5 +1,6 @@
 import { app, Menu } from 'electron'
 import { resolveLocale } from '../shared/i18n'
+import { FindingsStore } from './findings'
 import { registerIpc } from './ipc'
 import { buildMenu } from './menu'
 import { installSecurityHooks } from './security'
@@ -25,6 +26,7 @@ if (!app.requestSingleInstanceLock()) {
 } else {
   let mainWindow: MainWindow | null = null
   let settings: SettingsStore
+  let findings: FindingsStore
 
   const applyMenu = () => {
     const locale = resolveLocale(settings.get().locale, app.getLocale())
@@ -56,7 +58,10 @@ if (!app.requestSingleInstanceLock()) {
       mainWindow?.setTheme(next.theme)
     })
 
-    registerIpc({ settings, getWindow: () => mainWindow, isDev })
+    findings = new FindingsStore()
+    findings.onChange((list) => mainWindow?.sendFindings(list))
+
+    registerIpc({ settings, findings, getWindow: () => mainWindow, isDev })
     applyMenu()
     createWindow()
 

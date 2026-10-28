@@ -2,6 +2,7 @@
 import axe from 'axe-core'
 import { describe, expect, it } from 'vitest'
 import { scanPageSource } from '../../src/main/scan'
+import { keyboardRuleIds } from '../../src/shared/findings'
 import { en } from '../../src/shared/i18n/en'
 import { he } from '../../src/shared/i18n/he'
 import {
@@ -108,8 +109,12 @@ describe('explained rules', () => {
       expect(en, id).toHaveProperty(`rule.${id}`)
       expect(he, id).toHaveProperty(`rule.${id}`)
     }
-    const explained = Object.keys(en).filter((key) => key.startsWith('rule.'))
-    expect(explained.map((key) => key.slice(5)).sort()).toEqual([...explainedRules].sort())
+    // Ansy's own keyboard rules share the prefix; everything else must be an axe rule.
+    const explained = Object.keys(en)
+      .filter((key) => key.startsWith('rule.'))
+      .map((key) => key.slice(5))
+      .filter((id) => !keyboardRuleIds.includes(id))
+    expect(explained.sort()).toEqual([...explainedRules].sort())
     expect(isExplainedRule('image-alt')).toBe(true)
     expect(isExplainedRule('no-such-rule')).toBe(false)
   })

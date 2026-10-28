@@ -95,6 +95,55 @@ export function scanPage(localeJson: string | null, maxNodes: number): Promise<R
 /** The in-page half as source text, for the self-containment test. */
 export const scanPageSource = scanPage.toString()
 
+export type ElementCheck = 'fixed' | 'failing' | 'missing'
+
+/**
+ * Runs inside the page for "Check again": one rule on one element. Missing
+ * when the element is no longer there, which the owner has to judge.
+ */
+export function checkElement(
+  localeJson: string | null,
+  selector: string,
+  ruleId: string,
+): Promise<ElementCheck> {
+  type Axe = {
+    configure(spec: { locale: unknown }): void
+    reset(): void
+    run(
+      context: Document | Element,
+      options: Record<string, unknown>,
+    ): Promise<{ violations: { nodes: unknown[] }[] }>
+  }
+  const axe = (globalThis as unknown as { axe?: Axe }).axe
+  if (!axe) return Promise.reject(new Error('axe is not loaded'))
+  for (const old of Array.from(document.querySelectorAll('[data-ansy-highlight]'))) old.remove()
+  try {
+    if (localeJson) axe.configure({ locale: JSON.parse(localeJson) })
+    else axe.reset()
+  } catch {
+    axe.reset()
+  }
+  let element: Element | null = null
+  try {
+    element = selector === 'html' ? document.documentElement : document.querySelector(selector)
+  } catch {
+    return Promise.resolve('missing')
+  }
+  if (!element) return Promise.resolve('missing')
+  return axe
+    .run(selector === 'html' ? document : element, {
+      iframes: false,
+      runOnly: { type: 'rule', values: [ruleId] },
+      resultTypes: ['violations'],
+      elementRef: false,
+    })
+    .then((results) =>
+      results.violations.some((violation) => violation.nodes.length > 0) ? 'failing' : 'fixed',
+    )
+}
+
+export const checkElementSource = checkElement.toString()
+
 /**
  * Loads axe into the world if the page does not have it yet, then scans. One
  * script per call: given several, Electron hands back the first one's result.
@@ -109,6 +158,22 @@ export async function runAxe(
   if (!loaded) await run(axeSource)
   const call = `(${scanPageSource})(${JSON.stringify(axeLocales[locale] ?? null)}, ${MAX_NODES})`
   return (await run(call)) as RawScan
+}
+
+/** Loads axe if needed and checks one rule on one element. */
+export async function runAxeOn(
+  contents: WebContents,
+  world: number,
+  locale: Locale,
+  selector: string,
+  ruleId: string,
+): Promise<ElementCheck> {
+  const run = (code: string) => contents.executeJavaScriptInIsolatedWorld(world, [{ code }])
+  const loaded = (await run('typeof axe === "object"')) as boolean
+  if (!loaded) await run(axeSource)
+  const call = `(${checkElementSource})(${JSON.stringify(axeLocales[locale] ?? null)}, ${JSON.stringify(selector)}, ${JSON.stringify(ruleId)})`
+  const result = await run(call)
+  return result === 'fixed' || result === 'failing' ? result : 'missing'
 }
 
 export function isRawScan(value: unknown): value is RawScan {

@@ -8,6 +8,18 @@ All notable changes to Ansy are recorded here. The format follows
 
 ### Added
 
+- Three guided tasks (find the contact details, fill in a form, complete a
+  purchase or booking), each with a goal, steps and the experiences to try it
+  with.
+- Findings: anything Ansy noticed, or the owner met, saved with the page, the
+  element, a screenshot with it ringed, the WCAG rule and a note; kept per site
+  in the app's data folder, with "Show on page" and "Check again", which
+  reopens the page with the same experience and says whether the problem is
+  still there.
+- Reports: the findings for a site as a PDF (cover, a page per finding,
+  how to send it) or as plain text, saved or copied, in English or Hebrew, with
+  the no-certificate disclaimer and an optional "Ask Slikk.Dev to fix this"
+  line.
 - Keyboard only: the mouse taken away, a bold focus ring and a numbered trail,
   with what the keyboard could not do noted as it happens: where Tab gets
   stuck, where focus shows nothing, and what only a click can reach.

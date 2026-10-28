@@ -37,6 +37,16 @@ ring and numbered trail and notes what the keyboard cannot do, and one runs
 results Ansy explains in plain words, in both languages, and maps to their WCAG
 success criteria.
 
+Three guided tasks (find the contact details, fill in a form, complete a
+purchase or booking) give the owner something to do with each experience, and
+whatever gets in the way can be saved as a finding: the page, the element, a
+screenshot with it ringed, the WCAG rule and Ansy's explanation, and the owner's
+own note. Findings are kept per site, in the app's data folder only, and go out
+as a PDF or a plain-text report (with the no-certificate disclaimer, and an
+optional "Ask Slikk.Dev to fix this" line) for whoever builds the site. "Check
+again" reopens the page with the same experience and tells the owner whether the
+problem is still there.
+
 ### Develop
 
 Requires Node.js 22 or newer.

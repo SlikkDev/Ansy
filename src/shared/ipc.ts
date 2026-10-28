@@ -8,12 +8,15 @@ export interface Settings {
   theme: ThemeSetting
   /** Check GitHub Releases for a newer version when Ansy starts (direct downloads only). */
   updateCheck: boolean
+  /** End exported reports with an "Ask Slikk.Dev to fix this" link. */
+  slikkLink: boolean
 }
 
 export const defaultSettings: Settings = {
   locale: 'system',
   theme: 'system',
   updateCheck: true,
+  slikkLink: true,
 }
 
 export interface SiteError {
@@ -68,6 +71,11 @@ export interface Bounds {
 /** Commands the main process sends to Ansy's screens (menu items, shortcuts from the site view). */
 export type UiCommand = 'focus-address' | 'open-about'
 
+export type ExportFormat = 'pdf' | 'text'
+
+/** Where a report went, or why it did not: the owner closed the file dialog, or there was nothing to export. */
+export type ExportResult = { ok: true; path: string } | { ok: false; canceled: boolean }
+
 /** IPC channel names, in one place so main and preload cannot drift. */
 export const channels = {
   appInitial: 'app:initial',
@@ -91,5 +99,15 @@ export const channels = {
   expScan: 'exp:scan',
   expShow: 'exp:show',
   expKeyboardReset: 'exp:keyboard-reset',
+  findingsList: 'findings:list',
+  findingsSnapshot: 'findings:snapshot',
+  findingsAdd: 'findings:add',
+  findingsUpdate: 'findings:update',
+  findingsRemove: 'findings:remove',
+  findingsScreenshot: 'findings:screenshot',
+  findingsRetest: 'findings:retest',
+  findingsExport: 'findings:export',
+  findingsCopy: 'findings:copy',
+  findingsChanged: 'findings:changed',
   uiCommand: 'ui:command',
 } as const

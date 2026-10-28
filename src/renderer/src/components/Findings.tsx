@@ -1,11 +1,24 @@
 import { useState } from 'react'
+import { keyboardRules, type KeyboardRuleGroup } from '../../../shared/findings'
 import type { MessageKey } from '../../../shared/i18n'
 import type { KeyboardFinding, KeyboardReport } from '../../../shared/keyboard'
 import { isExplainedRule, type ScanIssue, type ScanResult } from '../../../shared/scan'
 import { ansy } from '../lib/ansy'
+import { useCapture, type CaptureStart } from '../lib/findings'
 import { useT } from '../lib/i18n'
 
 const heading = 'mb-1 text-xs font-semibold uppercase tracking-wide text-ink-soft'
+
+/** Opens the finding dialog with what this row knows. */
+function SaveFinding({ start }: { start: CaptureStart }) {
+  const t = useT()
+  const capture = useCapture()
+  return (
+    <button type="button" className="btn-link text-xs" onClick={() => capture.start(start)}>
+      {t('findings.save')}
+    </button>
+  )
+}
 
 /** Scrolls the site to the element and rings it; says so when it is gone. */
 function ShowOnPage({ target }: { target: string }) {
@@ -36,11 +49,28 @@ export function KeyboardFindings({
   onClear: () => void
 }) {
   const t = useT()
-  const groups: { key: MessageKey; items: KeyboardFinding[] }[] = [
-    { key: 'exp.keyboard.traps', items: report.traps },
-    { key: 'exp.keyboard.invisible', items: report.invisibleFocus },
-    { key: 'exp.keyboard.unreachable', items: report.unreachable },
+  const groups: { key: MessageKey; group: KeyboardRuleGroup; items: KeyboardFinding[] }[] = [
+    { key: 'exp.keyboard.traps', group: 'traps', items: report.traps },
+    { key: 'exp.keyboard.invisible', group: 'invisibleFocus', items: report.invisibleFocus },
+    { key: 'exp.keyboard.unreachable', group: 'unreachable', items: report.unreachable },
   ]
+  /** A keyboard finding carries one of Ansy's own rules, so it reads like a scan finding in the report. */
+  const startFor = (group: (typeof groups)[number], item: KeyboardFinding): CaptureStart => {
+    const rule = keyboardRules[group.group]
+    return {
+      kind: 'keyboard',
+      severity: rule.severity,
+      rule: {
+        id: rule.id,
+        help: t(group.key),
+        description: '',
+        helpUrl: '',
+        wcag: [...rule.wcag],
+        level: rule.level,
+      },
+      element: { target: item.target, html: item.label },
+    }
+  }
   return (
     <section>
       <h3 className={heading}>{t('panel.noticed')}</h3>
@@ -58,7 +88,8 @@ export function KeyboardFindings({
               <ul className="list-disc ps-5">
                 {group.items.map((item) => (
                   <li key={item.target}>
-                    <span dir="auto">{item.label}</span> <ShowOnPage target={item.target} />
+                    <span dir="auto">{item.label}</span> <ShowOnPage target={item.target} />{' '}
+                    <SaveFinding start={startFor(group, item)} />
                   </li>
                 ))}
               </ul>
@@ -153,7 +184,24 @@ function IssueCard({ issue }: { issue: ScanIssue }) {
               >
                 {node.html}
               </code>
-              <ShowOnPage target={node.target} />
+              <span className="inline-flex flex-wrap gap-x-3">
+                <ShowOnPage target={node.target} />
+                <SaveFinding
+                  start={{
+                    kind: 'scan',
+                    severity: issue.impact ?? 'moderate',
+                    rule: {
+                      id: issue.id,
+                      help: issue.help,
+                      description: issue.description,
+                      helpUrl: issue.helpUrl,
+                      wcag: issue.wcag,
+                      level: issue.level,
+                    },
+                    element: { target: node.target, html: node.html },
+                  }}
+                />
+              </span>
             </li>
           ))}
         </ul>

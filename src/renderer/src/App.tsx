@@ -1,19 +1,26 @@
-import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import {
   sanitizeExperiencePatch,
   type ExperienceReport,
   type ExperienceState,
 } from '../../shared/experiences'
+import type { Finding } from '../../shared/findings'
 import { resolveLocale, type Locale } from '../../shared/i18n'
 import { emptySiteState, type InitialState, type Settings, type SiteState } from '../../shared/ipc'
+import type { TaskId } from '../../shared/tasks'
 import { AboutDialog } from './components/AboutDialog'
 import { AddressBar, type AddressBarHandle } from './components/AddressBar'
+import { CaptureDialog, type CaptureDraft } from './components/CaptureDialog'
 import { AnsyMark, Info } from './components/Icons'
 import { ExperiencePanel } from './components/ExperiencePanel'
+import { FindingsTab } from './components/FindingsTab'
 import { NavButtons } from './components/NavButtons'
+import { Panel, type PanelTab } from './components/Panel'
 import { SiteFrame } from './components/SiteFrame'
+import { TasksTab } from './components/TasksTab'
 import { LangSwitch, ThemeToggle } from './components/Toggles'
 import { ansy } from './lib/ansy'
+import { CaptureProvider, type Capture, type CaptureStart } from './lib/findings'
 import { applyLocale, I18nProvider, useT } from './lib/i18n'
 import { applyTheme, followSystemTheme, resolveTheme } from './lib/theme'
 
@@ -23,8 +30,13 @@ export function App({ initial }: { initial: InitialState }) {
   const [theme, setTheme] = useState(() => resolveTheme(initial.settings.theme))
   const [site, setSite] = useState<SiteState>(emptySiteState)
   const [report, setReport] = useState<ExperienceReport | null>(null)
+  const [findings, setFindings] = useState<Finding[]>([])
+  const [task, setTask] = useState<TaskId | null>(null)
+  const [tab, setTab] = useState<PanelTab>('experiences')
+  const [draft, setDraft] = useState<CaptureDraft | null>(null)
   const [aboutOpen, setAboutOpen] = useState(false)
   const addressRef = useRef<AddressBarHandle>(null)
+  const captures = useRef(0)
   const isMac = initial.platform === 'darwin'
 
   useEffect(() => {
@@ -35,6 +47,11 @@ export function App({ initial }: { initial: InitialState }) {
   useEffect(() => {
     void ansy.experiences.get().then((current) => current && setReport(current))
     return ansy.experiences.onReport(setReport)
+  }, [])
+
+  useEffect(() => {
+    void ansy.findings.list().then(setFindings)
+    return ansy.findings.onChange(setFindings)
   }, [])
 
   const changeExperience = useCallback((patch: Partial<ExperienceState>) => {
@@ -48,11 +65,34 @@ export function App({ initial }: { initial: InitialState }) {
     void ansy.experiences.set(patch).then((next) => next && setReport(next))
   }, [])
 
+  /** From the tasks tab: turn the experience on and go where it shows. */
+  const tryExperience = useCallback(
+    (patch: Partial<ExperienceState>) => {
+      changeExperience(patch)
+      setTab('experiences')
+    },
+    [changeExperience],
+  )
+
   const scanAgain = useCallback(() => {
     void ansy.experiences.scan().then((next) => next && setReport(next))
   }, [])
 
   const clearTrail = useCallback(() => void ansy.experiences.resetKeyboard(), [])
+
+  const siteOpen = site.open && !site.error
+  const startCapture = useCallback((start: CaptureStart) => {
+    captures.current += 1
+    const seq = captures.current
+    // The picture is taken before the dialog covers the site.
+    void ansy.findings.snapshot(start.element?.target ?? null).then((preview) => {
+      if (captures.current === seq) setDraft({ seq, start, preview })
+    })
+  }, [])
+  const capture = useMemo<Capture>(
+    () => ({ task, enabled: siteOpen, start: startCapture }),
+    [task, siteOpen, startCapture],
+  )
 
   useEffect(
     () =>
@@ -95,23 +135,46 @@ export function App({ initial }: { initial: InitialState }) {
     setTheme(applyTheme(saved.theme))
   }, [theme])
 
+  const setSlikkLink = useCallback((slikkLink: boolean) => {
+    setSettings((current) => ({ ...current, slikkLink }))
+    void ansy.settings.set({ slikkLink }).then(setSettings)
+  }, [])
+
   return (
     <I18nProvider locale={locale}>
-      <Shell
-        site={site}
-        report={report}
-        onExperience={changeExperience}
-        onScan={scanAgain}
-        onClearTrail={clearTrail}
-        locale={locale}
-        theme={theme}
-        isMac={isMac}
-        addressRef={addressRef}
-        onLocale={changeLocale}
-        onTheme={toggleTheme}
-        onAbout={() => setAboutOpen(true)}
-      />
-      <AboutDialog open={aboutOpen} onClose={() => setAboutOpen(false)} />
+      <CaptureProvider value={capture}>
+        <Shell
+          site={site}
+          report={report}
+          findings={findings}
+          task={task}
+          tab={tab}
+          slikkLink={settings.slikkLink}
+          onTab={setTab}
+          onTask={setTask}
+          onExperience={changeExperience}
+          onTryExperience={tryExperience}
+          onScan={scanAgain}
+          onClearTrail={clearTrail}
+          onSlikkLink={setSlikkLink}
+          locale={locale}
+          theme={theme}
+          isMac={isMac}
+          addressRef={addressRef}
+          onLocale={changeLocale}
+          onTheme={toggleTheme}
+          onAbout={() => setAboutOpen(true)}
+        />
+        <CaptureDialog
+          draft={draft}
+          site={site}
+          task={task}
+          experience={report?.state.active ?? null}
+          onClose={() => setDraft(null)}
+          onSaved={() => setTab('findings')}
+        />
+        <AboutDialog open={aboutOpen} onClose={() => setAboutOpen(false)} />
+      </CaptureProvider>
     </I18nProvider>
   )
 }
@@ -119,9 +182,17 @@ export function App({ initial }: { initial: InitialState }) {
 interface ShellProps {
   site: SiteState
   report: ExperienceReport | null
+  findings: Finding[]
+  task: TaskId | null
+  tab: PanelTab
+  slikkLink: boolean
+  onTab: (tab: PanelTab) => void
+  onTask: (task: TaskId | null) => void
   onExperience: (patch: Partial<ExperienceState>) => void
+  onTryExperience: (patch: Partial<ExperienceState>) => void
   onScan: () => void
   onClearTrail: () => void
+  onSlikkLink: (on: boolean) => void
   locale: Locale
   theme: 'dark' | 'light'
   isMac: boolean
@@ -134,9 +205,17 @@ interface ShellProps {
 function Shell({
   site,
   report,
+  findings,
+  task,
+  tab,
+  slikkLink,
+  onTab,
+  onTask,
   onExperience,
+  onTryExperience,
   onScan,
   onClearTrail,
+  onSlikkLink,
   locale,
   theme,
   isMac,
@@ -183,16 +262,31 @@ function Shell({
         <aside
           id="panel"
           className="w-96 shrink-0 overflow-y-auto border-s border-line bg-surface"
-          aria-labelledby="panel-title"
+          aria-label={t('panel.region')}
           tabIndex={-1}
         >
-          <ExperiencePanel
-            report={report}
-            site={site}
-            onChange={onExperience}
-            onScan={onScan}
-            onClearTrail={onClearTrail}
-          />
+          <Panel tab={tab} onTab={onTab} findingsCount={findings.length}>
+            {{
+              experiences: (
+                <ExperiencePanel
+                  report={report}
+                  site={site}
+                  onChange={onExperience}
+                  onScan={onScan}
+                  onClearTrail={onClearTrail}
+                />
+              ),
+              tasks: <TasksTab task={task} onTask={onTask} onExperience={onTryExperience} />,
+              findings: (
+                <FindingsTab
+                  findings={findings}
+                  site={site}
+                  slikkLink={slikkLink}
+                  onSlikkLink={onSlikkLink}
+                />
+              ),
+            }}
+          </Panel>
         </aside>
       </div>
     </div>
