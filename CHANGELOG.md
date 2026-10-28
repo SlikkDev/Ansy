@@ -8,6 +8,15 @@ All notable changes to Ansy are recorded here. The format follows
 
 ### Added
 
+- Ansy Reader: a built-in screen reader that reads the page's accessibility
+  tree in order, with the everyday keys of NVDA and JAWS (arrows, H, K, B, F,
+  E, L, G, D, T, 1 to 6, Enter, Tab followed, Escape), the system's own voice in
+  English or Hebrew, a visible transcript of every word, a screen cover, and
+  its own findings: images, links, buttons and fields with no name, headings
+  that skip a level, pages with no landmarks, saved and checked again like any
+  other.
+- The practice shop, built into the app at ansy://shop/, now with a checkout
+  and a thank-you page, so a purchase can be tried end to end.
 - Three guided tasks (find the contact details, fill in a form, complete a
   purchase or booking), each with a goal, steps and the experiences to try it
   with.

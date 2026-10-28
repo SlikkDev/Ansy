@@ -5,6 +5,7 @@ import type { Finding } from '../shared/findings'
 import type { Locale } from '../shared/i18n'
 import type { Settings, SiteState, UiCommand } from '../shared/ipc'
 import { channels } from '../shared/ipc'
+import type { ReaderEvent } from '../shared/reader'
 import { pinToApp } from './security'
 import { SiteView } from './site-view'
 
@@ -51,6 +52,7 @@ export class MainWindow {
       (command) => this.sendCommand(command),
       (report) => this.send(channels.expReport, report),
       getLocale,
+      (event) => this.send(channels.readerEvent, event),
     )
 
     this.window.once('ready-to-show', () => this.window.show())
@@ -80,7 +82,10 @@ export class MainWindow {
     this.send(channels.siteState, state)
   }
 
-  private send(channel: string, payload: SiteState | ExperienceReport | Finding[]): void {
+  private send(
+    channel: string,
+    payload: SiteState | ExperienceReport | Finding[] | ReaderEvent,
+  ): void {
     if (this.window.isDestroyed()) return
     this.window.webContents.send(channel, payload)
   }

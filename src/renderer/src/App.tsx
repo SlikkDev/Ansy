@@ -22,6 +22,7 @@ import { LangSwitch, ThemeToggle } from './components/Toggles'
 import { ansy } from './lib/ansy'
 import { CaptureProvider, type Capture, type CaptureStart } from './lib/findings'
 import { applyLocale, I18nProvider, useT } from './lib/i18n'
+import { ReaderProvider } from './lib/reader'
 import { applyTheme, followSystemTheme, resolveTheme } from './lib/theme'
 
 export function App({ initial }: { initial: InitialState }) {
@@ -143,37 +144,40 @@ export function App({ initial }: { initial: InitialState }) {
   return (
     <I18nProvider locale={locale}>
       <CaptureProvider value={capture}>
-        <Shell
-          site={site}
-          report={report}
-          findings={findings}
-          task={task}
-          tab={tab}
-          slikkLink={settings.slikkLink}
-          onTab={setTab}
-          onTask={setTask}
-          onExperience={changeExperience}
-          onTryExperience={tryExperience}
-          onScan={scanAgain}
-          onClearTrail={clearTrail}
-          onSlikkLink={setSlikkLink}
-          locale={locale}
-          theme={theme}
-          isMac={isMac}
-          addressRef={addressRef}
-          onLocale={changeLocale}
-          onTheme={toggleTheme}
-          onAbout={() => setAboutOpen(true)}
-        />
-        <CaptureDialog
-          draft={draft}
-          site={site}
-          task={task}
-          experience={report?.state.active ?? null}
-          onClose={() => setDraft(null)}
-          onSaved={() => setTab('findings')}
-        />
-        <AboutDialog open={aboutOpen} onClose={() => setAboutOpen(false)} />
+        <ReaderProvider report={report} locale={locale}>
+          <Shell
+            site={site}
+            report={report}
+            platform={initial.platform}
+            findings={findings}
+            task={task}
+            tab={tab}
+            slikkLink={settings.slikkLink}
+            onTab={setTab}
+            onTask={setTask}
+            onExperience={changeExperience}
+            onTryExperience={tryExperience}
+            onScan={scanAgain}
+            onClearTrail={clearTrail}
+            onSlikkLink={setSlikkLink}
+            locale={locale}
+            theme={theme}
+            isMac={isMac}
+            addressRef={addressRef}
+            onLocale={changeLocale}
+            onTheme={toggleTheme}
+            onAbout={() => setAboutOpen(true)}
+          />
+          <CaptureDialog
+            draft={draft}
+            site={site}
+            task={task}
+            experience={report?.state.active ?? null}
+            onClose={() => setDraft(null)}
+            onSaved={() => setTab('findings')}
+          />
+          <AboutDialog open={aboutOpen} onClose={() => setAboutOpen(false)} />
+        </ReaderProvider>
       </CaptureProvider>
     </I18nProvider>
   )
@@ -182,6 +186,7 @@ export function App({ initial }: { initial: InitialState }) {
 interface ShellProps {
   site: SiteState
   report: ExperienceReport | null
+  platform: string
   findings: Finding[]
   task: TaskId | null
   tab: PanelTab
@@ -205,6 +210,7 @@ interface ShellProps {
 function Shell({
   site,
   report,
+  platform,
   findings,
   task,
   tab,
@@ -271,6 +277,7 @@ function Shell({
                 <ExperiencePanel
                   report={report}
                   site={site}
+                  platform={platform}
                   onChange={onExperience}
                   onScan={onScan}
                   onClearTrail={onClearTrail}

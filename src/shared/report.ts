@@ -4,7 +4,13 @@
  * read them without Electron.
  */
 
-import { findingHeadline, keyboardRuleIds, type Finding, type FindingRule } from './findings'
+import {
+  findingHeadline,
+  keyboardRuleIds,
+  readerRuleIds,
+  type Finding,
+  type FindingRule,
+} from './findings'
 import type { Locale, MessageKey } from './i18n'
 import { isExplainedRule } from './scan'
 
@@ -28,7 +34,11 @@ export const ANSY_URL = 'https://slikkdev.github.io/Ansy/'
 
 /** Where the rule's words come from: Ansy's own, for the rules it explains; axe's otherwise. */
 export function explainRule(rule: FindingRule, t: Translate): string {
-  if (isExplainedRule(rule.id) || keyboardRuleIds.includes(rule.id)) {
+  if (
+    isExplainedRule(rule.id) ||
+    keyboardRuleIds.includes(rule.id) ||
+    readerRuleIds.includes(rule.id)
+  ) {
     return t(`rule.${rule.id}` as MessageKey)
   }
   return rule.description

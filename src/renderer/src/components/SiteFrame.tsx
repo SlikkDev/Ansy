@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef } from 'react'
 import type { SiteState } from '../../../shared/ipc'
+import { PRACTICE_SHOP_URL } from '../../../shared/url'
 import { ansy } from '../lib/ansy'
 import { useI18n, useT } from '../lib/i18n'
 import { AnsyMark } from './Icons'
@@ -76,9 +77,17 @@ export function SiteFrame({
             <AnsyMark width={56} height={56} className="mx-auto mb-5" />
             <h1 className="mb-3 text-3xl leading-tight">{t('welcome.title')}</h1>
             <p className="mb-5 text-base text-ink-soft">{t('welcome.body')}</p>
-            <p className="text-sm text-ink-soft">
+            <p className="mb-6 text-sm text-ink-soft">
               {t('welcome.hint', { shortcut: isMac ? '⌘L' : 'Ctrl+L' })}
             </p>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => void ansy.site.navigate(PRACTICE_SHOP_URL)}
+            >
+              {t('welcome.practice')}
+            </button>
+            <p className="mt-2 text-xs text-ink-soft">{t('welcome.practiceHint')}</p>
           </div>
         </div>
       )}

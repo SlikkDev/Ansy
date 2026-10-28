@@ -2,8 +2,10 @@ import { WebContentsView, session, type BrowserWindow, type Input } from 'electr
 import type { ExperienceReport } from '../shared/experiences'
 import type { Locale } from '../shared/i18n'
 import { emptySiteState, type Bounds, type SiteState, type UiCommand } from '../shared/ipc'
+import type { ReaderEvent } from '../shared/reader'
 import { isWebUrl } from '../shared/url'
 import { ExperienceEngine } from './experiences'
+import { servePracticeShop } from './practice'
 import { denyPermissions } from './security'
 import { cleanUserAgent } from './user-agent'
 
@@ -45,9 +47,11 @@ export class SiteView {
     private readonly onCommand: (command: UiCommand) => void,
     onReport: (report: ExperienceReport) => void,
     getLocale: () => Locale,
+    onReaderEvent: (event: ReaderEvent) => void,
   ) {
     const siteSession = session.fromPartition(SITE_PARTITION)
     denyPermissions(siteSession)
+    servePracticeShop(siteSession)
 
     this.view = new WebContentsView({
       webPreferences: {
@@ -74,6 +78,7 @@ export class SiteView {
         this.setBounds(this.frame)
       },
       getLocale,
+      onReaderEvent,
     )
 
     // A pop-up or target="_blank" link opens in this same view. Anything else is dropped.
@@ -102,9 +107,13 @@ export class SiteView {
     })
     contents.on('before-input-event', (event, input) => {
       const command = shortcutFor(input, process.platform)
-      if (!command) return
-      event.preventDefault()
-      command()
+      if (command) {
+        event.preventDefault()
+        command()
+        return
+      }
+      // Ansy Reader's keys never reach the page; everything else does.
+      if (this.experiences.handleInput(input)) event.preventDefault()
     })
 
     const shortcutFor = (input: Input, platform: NodeJS.Platform): (() => void) | null => {
@@ -179,7 +188,8 @@ export class SiteView {
         await this.experiences.show(target)
         await new Promise((resolve) => setTimeout(resolve, 200))
       }
-      let image = await this.view.webContents.capturePage()
+      // The screen cover would make a black picture; it is lifted for the moment.
+      let image = await this.experiences.uncovered(() => this.view.webContents.capturePage())
       if (image.isEmpty()) return null
       if (image.getSize().width > SHOT_MAX_WIDTH) image = image.resize({ width: SHOT_MAX_WIDTH })
       return image.toPNG()

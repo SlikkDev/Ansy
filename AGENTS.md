@@ -55,16 +55,20 @@ src/
   main/      Electron main process: window, site view, security, settings, menu, IPC,
              the experience engine (DevTools switches), the in-page helpers
              (observe, keyboard trail, axe scan, highlight, check again) shipped as
-             source text, the findings store and the PDF/text report
+             source text, Ansy Reader's engine (the accessibility tree over the
+             DevTools protocol, the virtual cursor, the keys), the practice shop
+             served at ansy://shop/, the findings store and the PDF/text report
   preload/   contextBridge API for Ansy's own screens (sandboxed; no Node)
   renderer/  Ansy's screens: React 19 + Tailwind 4, strict TypeScript
   shared/    types, the experience and task tables, the findings model, the report
-             builders and the i18n string tables, used by main and renderer
+             builders, the reader's pure parts (reading order, findings, speech)
+             and the i18n string tables, used by main and renderer
 tests/
   unit/      Vitest
   e2e/       Playwright driving the real Electron app
-  fixtures/  the sample pages the tests (and later the practice shop) use
-resources/   app icon and build resources for electron-builder
+  fixtures/  accessibility trees captured from the practice shop, for the reader
+resources/   app icon, the practice shop (resources/practice-shop, which the tests
+             serve over http too) and build resources for electron-builder
 site/        the project website (GitHub Pages); separate from the app
 ```
 

@@ -28,6 +28,8 @@ describe('switchesFor', () => {
       keyboard: false,
       mouseOff: false,
       scan: false,
+      reader: false,
+      cover: false,
     })
   })
 
@@ -117,7 +119,9 @@ describe('sanitizeExperiencePatch', () => {
   })
 
   it('refuses experiences that are not available yet', () => {
-    expect(sanitizeExperiencePatch(defaultExperienceState, { active: 'reader' }).active).toBeNull()
+    expect(
+      sanitizeExperiencePatch(defaultExperienceState, { active: 'telepathy' }).active,
+    ).toBeNull()
     expect(sanitizeExperiencePatch(on({ active: 'zoom' }), { active: null }).active).toBeNull()
   })
 

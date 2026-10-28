@@ -13,9 +13,9 @@ import { isTaskId, type TaskId } from './tasks'
 /** axe's impact for what the scan found; "owner" for what the owner met while using the site. */
 export type Severity = Impact | 'owner'
 
-export type FindingKind = 'scan' | 'keyboard' | 'note'
+export type FindingKind = 'scan' | 'keyboard' | 'reader' | 'note'
 
-/** The rule a finding breaks: an axe rule, or one of Ansy's own keyboard rules. */
+/** The rule a finding breaks: an axe rule, or one of Ansy's own keyboard or reader rules. */
 export interface FindingRule {
   id: string
   /** A one-line title, as it was shown when the finding was saved. */
@@ -89,7 +89,7 @@ export function forSite(findings: readonly Finding[], site: string | null): Find
 }
 
 const severities = new Set<string>([...impacts, 'owner'])
-const kinds = new Set<string>(['scan', 'keyboard', 'note'])
+const kinds = new Set<string>(['scan', 'keyboard', 'reader', 'note'])
 const levels = new Set<string>(['A', 'AA', 'AAA'])
 
 const text = (value: unknown, max: number): string =>
@@ -200,3 +200,28 @@ export type KeyboardRuleGroup = keyof typeof keyboardRules
 export type KeyboardRuleId = (typeof keyboardRules)[KeyboardRuleGroup]['id']
 
 export const keyboardRuleIds: readonly string[] = Object.values(keyboardRules).map((r) => r.id)
+
+/**
+ * What Ansy Reader stumbles on: the things a screen reader announces as
+ * nothing, or as an outline that makes no sense. Each maps to the WCAG rule a
+ * provider will recognise, with axe's severity for the matching axe rule.
+ */
+export const readerRules = {
+  'reader-image-name': { wcag: ['1.1.1'], level: 'A', severity: 'critical' },
+  'reader-link-name': { wcag: ['2.4.4'], level: 'A', severity: 'serious' },
+  'reader-button-name': { wcag: ['4.1.2'], level: 'A', severity: 'critical' },
+  'reader-field-name': { wcag: ['4.1.2'], level: 'A', severity: 'critical' },
+  'reader-heading-empty': { wcag: ['2.4.6'], level: 'AA', severity: 'minor' },
+  'reader-heading-order': { wcag: ['1.3.1'], level: 'A', severity: 'moderate' },
+  'reader-no-landmarks': { wcag: ['2.4.1'], level: 'A', severity: 'moderate' },
+} as const satisfies Record<
+  string,
+  { wcag: readonly string[]; level: 'A' | 'AA'; severity: Impact }
+>
+
+export type ReaderRuleId = keyof typeof readerRules
+export const readerRuleIds: readonly string[] = Object.keys(readerRules)
+
+export function isReaderRuleId(value: string): value is ReaderRuleId {
+  return readerRuleIds.includes(value)
+}

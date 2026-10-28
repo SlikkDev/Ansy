@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { ExperienceReport, ExperienceState } from '../shared/experiences'
-import type { Finding, FindingDraft, FindingPatch } from '../shared/findings'
+import type { Finding, FindingDraft, FindingElement, FindingPatch } from '../shared/findings'
 import {
   channels,
   type AppInfo,
@@ -12,6 +12,7 @@ import {
   type SiteState,
   type UiCommand,
 } from '../shared/ipc'
+import type { ReaderCommand, ReaderEvent } from '../shared/reader'
 
 /** Read once, before the first paint, so the language and theme never flash. */
 const initial = ipcRenderer.sendSync(channels.appInitial) as InitialState
@@ -59,6 +60,18 @@ export const ansy = {
     scan: (): Promise<ExperienceReport | null> => ipcRenderer.invoke(channels.expScan),
     show: (target: string): Promise<boolean> => ipcRenderer.invoke(channels.expShow, target),
     resetKeyboard: (): Promise<void> => ipcRenderer.invoke(channels.expKeyboardReset),
+  },
+  reader: {
+    /** Moves the virtual cursor, activates, or reads the page again. What is said arrives through onEvent. */
+    command: (command: ReaderCommand): Promise<void> =>
+      ipcRenderer.invoke(channels.readerCommand, command),
+    /** Scrolls the site to an item and rings it. */
+    show: (index: number): Promise<boolean> => ipcRenderer.invoke(channels.readerShow, index),
+    /** The element behind an item, for a finding. */
+    element: (index: number): Promise<FindingElement | null> =>
+      ipcRenderer.invoke(channels.readerElement, index),
+    onEvent: (callback: (event: ReaderEvent) => void): (() => void) =>
+      subscribe(channels.readerEvent, callback),
   },
   findings: {
     list: (): Promise<Finding[]> => ipcRenderer.invoke(channels.findingsList),

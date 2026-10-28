@@ -13,7 +13,7 @@ import { extname, join, normalize } from 'node:path'
 
 /** What every end-to-end spec needs: the built app, its window, and the sample shop served locally. */
 
-const fixtures = join(__dirname, '..', 'fixtures', 'sample-shop')
+const fixtures = join(__dirname, '..', '..', 'resources', 'practice-shop')
 const types: Record<string, string> = { '.html': 'text/html; charset=utf-8' }
 
 export interface Harness {

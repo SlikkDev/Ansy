@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Checkout</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 2rem;
+        color: #222;
+        background: #fff;
+      }
+      header a {
+        font-weight: 600;
+        color: #ff2d6b;
+      }
+      main {
+        max-width: 36rem;
+      }
+      table {
+        border-collapse: collapse;
+        margin: 1rem 0;
+      }
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 0.3rem 0.6rem;
+        text-align: left;
+      }
+      p {
+        margin: 0.6rem 0;
+      }
+      .hint {
+        display: inline-block;
+        min-width: 7rem;
+      }
+      label {
+        display: inline-block;
+        min-width: 7rem;
+      }
+      .remove {
+        background: none;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 0.2rem 0.4rem;
+        vertical-align: middle;
+      }
+      .buy {
+        background: #ff2d6b;
+        color: #fff;
+        border: 0;
+        padding: 0.6rem 1rem;
+        border-radius: 6px;
+      }
+      footer {
+        margin-top: 2rem;
+        color: #666;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header><a href="index.html">Sample shop</a></header>
+    <nav aria-label="Main"><a href="index.html">Home</a> · <a href="contact.html">Contact</a></nav>
+    <main>
+      <h1>Checkout</h1>
+      <!-- A level skipped: h1 straight to h3. Ansy Reader notes it. -->
+      <h3>Your order</h3>
+      <ul>
+        <li>Red mug, 1 × 12.00</li>
+        <li>Shipping, 3.00</li>
+      </ul>
+      <table>
+        <tr>
+          <th>Item</th>
+          <th>Price</th>
+        </tr>
+        <tr>
+          <td>Red mug</td>
+          <td>12.00</td>
+        </tr>
+        <tr>
+          <td>Total</td>
+          <td>15.00</td>
+        </tr>
+      </table>
+      <!-- No alt: a screen reader says "graphic" and nothing else. -->
+      <img
+        src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+        width="80"
+        height="80"
+      />
+      <form
+        onsubmit="
+          event.preventDefault()
+          location.href = 'thanks.html'
+        "
+      >
+        <h2>Your details</h2>
+        <p><label for="name">Name</label> <input id="name" name="name" autocomplete="name" /></p>
+        <p>
+          <label for="email">Email</label>
+          <input id="email" type="email" name="email" autocomplete="email" />
+        </p>
+        <!-- A span is not a label: the field is announced as "edit" and nothing else. -->
+        <p><span class="hint">Card number</span> <input name="card" /></p>
+        <p>
+          <label for="qty">Quantity</label>
+          <select id="qty">
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+          </select>
+          <!-- An icon with no name: "button", and that is all a screen reader says. -->
+          <button type="button" class="remove" onclick="document.getElementById('qty').value = '1'">
+            <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+              <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="2" />
+            </svg>
+          </button>
+        </p>
+        <p>
+          <label><input type="checkbox" name="gift" /> Gift wrap</label>
+        </p>
+        <button type="submit" class="buy">Place order</button>
+      </form>
+    </main>
+    <footer>Sample shop, a practice site. Nothing is shipped and nothing is charged.</footer>
+  </body>
+</html>
