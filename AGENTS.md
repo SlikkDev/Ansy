@@ -52,10 +52,11 @@ code, made by its developer.
 
 ```
 src/
-  main/      Electron main process: window, site view, security, settings, menu, IPC
+  main/      Electron main process: window, site view, security, settings, menu, IPC,
+             the experience engine (DevTools switches) and the in-page helper
   preload/   contextBridge API for Ansy's own screens (sandboxed; no Node)
   renderer/  Ansy's screens: React 19 + Tailwind 4, strict TypeScript
-  shared/    types and the i18n string tables, used by main and renderer
+  shared/    types, the experience table and the i18n string tables, used by main and renderer
 tests/
   unit/      Vitest
   e2e/       Playwright driving the real Electron app

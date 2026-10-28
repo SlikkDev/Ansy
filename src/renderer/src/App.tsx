@@ -1,11 +1,16 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
+import {
+  sanitizeExperiencePatch,
+  type ExperienceReport,
+  type ExperienceState,
+} from '../../shared/experiences'
 import { resolveLocale, type Locale } from '../../shared/i18n'
 import { emptySiteState, type InitialState, type Settings, type SiteState } from '../../shared/ipc'
 import { AboutDialog } from './components/AboutDialog'
 import { AddressBar, type AddressBarHandle } from './components/AddressBar'
 import { AnsyMark, Info } from './components/Icons'
+import { ExperiencePanel } from './components/ExperiencePanel'
 import { NavButtons } from './components/NavButtons'
-import { SidePanel } from './components/SidePanel'
 import { SiteFrame } from './components/SiteFrame'
 import { LangSwitch, ThemeToggle } from './components/Toggles'
 import { ansy } from './lib/ansy'
@@ -17,6 +22,7 @@ export function App({ initial }: { initial: InitialState }) {
   const [locale, setLocale] = useState<Locale>(initial.locale)
   const [theme, setTheme] = useState(() => resolveTheme(initial.settings.theme))
   const [site, setSite] = useState<SiteState>(emptySiteState)
+  const [report, setReport] = useState<ExperienceReport | null>(null)
   const [aboutOpen, setAboutOpen] = useState(false)
   const addressRef = useRef<AddressBarHandle>(null)
   const isMac = initial.platform === 'darwin'
@@ -24,6 +30,19 @@ export function App({ initial }: { initial: InitialState }) {
   useEffect(() => {
     void ansy.site.getState().then((state) => state && setSite(state))
     return ansy.site.onState(setSite)
+  }, [])
+
+  useEffect(() => {
+    void ansy.experiences.get().then((current) => current && setReport(current))
+    return ansy.experiences.onReport(setReport)
+  }, [])
+
+  const changeExperience = useCallback((patch: Partial<ExperienceState>) => {
+    // Show the choice at once; the main process confirms (and adds what it noticed) right after.
+    setReport((current) =>
+      current ? { ...current, state: sanitizeExperiencePatch(current.state, patch) } : current,
+    )
+    void ansy.experiences.set(patch).then((next) => next && setReport(next))
   }, [])
 
   useEffect(
@@ -71,6 +90,8 @@ export function App({ initial }: { initial: InitialState }) {
     <I18nProvider locale={locale}>
       <Shell
         site={site}
+        report={report}
+        onExperience={changeExperience}
         locale={locale}
         theme={theme}
         isMac={isMac}
@@ -86,6 +107,8 @@ export function App({ initial }: { initial: InitialState }) {
 
 interface ShellProps {
   site: SiteState
+  report: ExperienceReport | null
+  onExperience: (patch: Partial<ExperienceState>) => void
   locale: Locale
   theme: 'dark' | 'light'
   isMac: boolean
@@ -95,8 +118,20 @@ interface ShellProps {
   onAbout: () => void
 }
 
-function Shell({ site, locale, theme, isMac, addressRef, onLocale, onTheme, onAbout }: ShellProps) {
+function Shell({
+  site,
+  report,
+  onExperience,
+  locale,
+  theme,
+  isMac,
+  addressRef,
+  onLocale,
+  onTheme,
+  onAbout,
+}: ShellProps) {
   const t = useT()
+  const narrow = report?.state.active === 'zoom' && report.state.narrow
   return (
     <div className="flex h-full flex-col">
       <a className="skip-link" href="#panel">
@@ -128,7 +163,7 @@ function Shell({ site, locale, theme, isMac, addressRef, onLocale, onTheme, onAb
 
       <div className="flex min-h-0 flex-1">
         <main id="site" className="relative min-w-0 flex-1" aria-label={t('site.region')}>
-          <SiteFrame site={site} isMac={isMac} />
+          <SiteFrame site={site} isMac={isMac} narrow={narrow} />
         </main>
         <aside
           id="panel"
@@ -136,7 +171,7 @@ function Shell({ site, locale, theme, isMac, addressRef, onLocale, onTheme, onAb
           aria-labelledby="panel-title"
           tabIndex={-1}
         >
-          <SidePanel />
+          <ExperiencePanel report={report} site={site} onChange={onExperience} />
         </aside>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { app, BrowserWindow, nativeTheme } from 'electron'
 import { join } from 'node:path'
+import type { ExperienceReport } from '../shared/experiences'
 import type { Locale } from '../shared/i18n'
 import type { Settings, SiteState, UiCommand } from '../shared/ipc'
 import { channels } from '../shared/ipc'
@@ -47,6 +48,7 @@ export class MainWindow {
       this.window,
       (state) => this.sendSiteState(state),
       (command) => this.sendCommand(command),
+      (report) => this.send(channels.expReport, report),
     )
 
     this.window.once('ready-to-show', () => this.window.show())
@@ -69,7 +71,11 @@ export class MainWindow {
   }
 
   private sendSiteState(state: SiteState): void {
+    this.send(channels.siteState, state)
+  }
+
+  private send(channel: string, payload: SiteState | ExperienceReport): void {
     if (this.window.isDestroyed()) return
-    this.window.webContents.send(channels.siteState, state)
+    this.window.webContents.send(channel, payload)
   }
 }

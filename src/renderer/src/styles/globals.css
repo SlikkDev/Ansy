@@ -262,6 +262,35 @@
     color: var(--ink-soft);
     white-space: nowrap;
   }
+  /* The running experience: white on accent-strong keeps 4.5:1 in both themes. */
+  .badge-on {
+    background: var(--accent-strong);
+    border-color: var(--accent-strong);
+    color: var(--accent-ink);
+  }
+
+  /* The one call to action on a card. */
+  .btn-primary {
+    background: var(--accent-strong);
+    border-color: var(--accent-strong);
+    color: var(--accent-ink);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--accent-strong);
+    border-color: var(--accent);
+    filter: brightness(1.1);
+  }
+
+  /* The 320-pixel column the narrow site view sits in, drawn so the empty sides read as deliberate. */
+  .narrow-stage {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 50%;
+    width: 320px;
+    transform: translateX(-50%);
+    border-inline: 1px dashed var(--line-2);
+    background: var(--surface);
+  }
 }
 
 /* ---- Preferences ----------------------------------------------- */

@@ -18,15 +18,49 @@
         padding: 0.6rem 1rem;
         border-radius: 6px;
       }
+      .status {
+        color: #2e7d32;
+      }
+      .status.out {
+        color: #c62828;
+      }
+      .legal {
+        color: #aaa;
+        font-size: 11px;
+      }
+      /* Keeps moving even when the visitor asked for less motion: the motion experience counts it. */
+      .ticker {
+        display: inline-block;
+        animation: slide 3s linear infinite;
+      }
+      @keyframes slide {
+        from {
+          transform: translateX(0);
+        }
+        to {
+          transform: translateX(40px);
+        }
+      }
     </style>
   </head>
   <body>
     <h1>Sample shop</h1>
     <p>A small shop the tests open. It grows into the practice shop in a later step.</p>
     <nav aria-label="Main"><a href="index.html">Home</a> · <a href="contact.html">Contact</a></nav>
+    <p>
+      Red mug: <span class="status">in stock</span> · Blue mug:
+      <span class="status out">sold out</span>
+    </p>
+    <p class="ticker">Free shipping this week only!</p>
     <form>
       <label>Email <input type="email" name="email" /></label>
       <button class="buy" type="button">Buy now</button>
     </form>
+    <!-- Media the no-sound and motion experiences look at. Neither has a real source. -->
+    <video id="promo" autoplay muted loop width="160" height="90" aria-label="Promo video"></video>
+    <video id="captioned" width="160" height="90" aria-label="Captioned video">
+      <track kind="captions" srclang="en" label="English" />
+    </video>
+    <p class="legal">Low contrast legal text that is hard to read.</p>
   </body>
 </html>

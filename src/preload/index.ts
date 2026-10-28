@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import type { ExperienceReport, ExperienceState } from '../shared/experiences'
 import {
   channels,
   type AppInfo,
@@ -45,6 +46,13 @@ export const ansy = {
     getState: (): Promise<SiteState | null> => ipcRenderer.invoke(channels.siteGetState),
     onState: (callback: (state: SiteState) => void): (() => void) =>
       subscribe(channels.siteState, callback),
+  },
+  experiences: {
+    set: (patch: Partial<ExperienceState>): Promise<ExperienceReport | null> =>
+      ipcRenderer.invoke(channels.expSet, patch),
+    get: (): Promise<ExperienceReport | null> => ipcRenderer.invoke(channels.expGet),
+    onReport: (callback: (report: ExperienceReport) => void): (() => void) =>
+      subscribe(channels.expReport, callback),
   },
   ui: {
     onCommand: (callback: (command: UiCommand) => void): (() => void) =>

@@ -26,6 +26,13 @@ Ansy's own screens and the site never share a process.
 Ansy sends nothing anywhere. There are no accounts, no analytics and no crash
 reports; the only network traffic is the site you open.
 
+Each experience is a task card: what changes, what to look for, and how close
+the simulation is to the real thing. The switches that change how the site
+renders (colour vision, forced colours, media preferences, font size, zoom) are
+the same DevTools commands Chrome itself uses. A small helper runs inside the
+page, in a world the site's scripts cannot see, and only reads: it counts the
+animations that keep moving and the videos without captions.
+
 ### Develop
 
 Requires Node.js 22 or newer.
