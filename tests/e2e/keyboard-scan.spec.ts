@@ -108,7 +108,7 @@ test('the scan reads in Hebrew too', async () => {
   await h.page.getByRole('button', { name: 'סריקת העמוד' }).click()
   const label = h.page.locator('[data-rule="label"]')
   await expect(label).toContainText('לשדה הטופס הזה אין תווית', { timeout: 20_000 })
-  await expect(label).toContainText('WCAG 4.1.2, רמה A')
+  await expect(label).toContainText('WCAG 4.1.2 (רמה A)')
   await expect(label.locator('.badge-critical')).toHaveText('קריטי')
   await noViolations(h.page, 'Hebrew scan results')
   await h.page.getByRole('button', { name: 'כיבוי' }).click()

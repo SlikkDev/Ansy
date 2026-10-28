@@ -217,7 +217,7 @@ export const he: Record<MessageKey, string> = {
   'exp.scan.incompleteIntro': 'axe לא הצליח להכריע בעצמו. הסתכלו על כל אחד מהם.',
   'exp.scan.elements': '{count} אלמנטים',
   'exp.scan.element': 'אלמנט אחד',
-  'exp.scan.wcag': 'WCAG {sc}, רמה {level}',
+  'exp.scan.wcag': 'WCAG {sc} (רמה {level})',
   'exp.scan.wcagNoLevel': 'WCAG {sc}',
   'exp.scan.bestPractice': 'מומלץ, לא כלל של WCAG',
   'exp.scan.more': 'עוד על הכלל הזה',
