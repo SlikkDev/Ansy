@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Build output
+out/
+dist/
+
+# Test output
+test-results/
+playwright-report/
+coverage/
+
+# Local
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
+*.tsbuildinfo
