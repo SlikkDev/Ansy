@@ -9,7 +9,16 @@ import { AnsyMark } from './Icons'
  * element, so it reports its own bounds to the main process whenever they
  * change, and shows the welcome and error cards when there is no page to show.
  */
-export function SiteFrame({ site, isMac }: { site: SiteState; isMac: boolean }) {
+export function SiteFrame({
+  site,
+  isMac,
+  narrow,
+}: {
+  site: SiteState
+  isMac: boolean
+  /** The zoom experience's 320-pixel view: the native view shrinks to a column in the middle. */
+  narrow: boolean
+}) {
   const t = useT()
   const { dir } = useI18n()
   const ref = useRef<HTMLDivElement>(null)
@@ -54,6 +63,7 @@ export function SiteFrame({ site, isMac }: { site: SiteState; isMac: boolean }) 
       {site.open && !site.error && (
         <>
           <h1 className="visually-hidden">{site.title || site.url}</h1>
+          {narrow && <div className="narrow-stage" aria-hidden="true" />}
           <button type="button" className="skip-link" onClick={() => void ansy.site.focus()}>
             {t('site.focus')}
           </button>

@@ -8,6 +8,11 @@ All notable changes to Ansy are recorded here. The format follows
 
 ### Added
 
+- The first seven experiences, each a task card with what to look for and a
+  fidelity label: color blindness (four types), blurred vision and low
+  contrast, zoom to 200% and 400% with a 320-pixel view, large text and text
+  spacing, high contrast, motion sensitivity (which counts what keeps moving)
+  and no sound (which checks for captions).
 - The app skeleton: an Electron browser shell with an address bar, back,
   forward and reload, and a sandboxed view of the site.
 - English and Hebrew interface with full right-to-left layout, chosen from the

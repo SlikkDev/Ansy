@@ -1,8 +1,13 @@
 import { WebContentsView, session, type BrowserWindow, type Input } from 'electron'
+import type { ExperienceReport } from '../shared/experiences'
 import { emptySiteState, type Bounds, type SiteState, type UiCommand } from '../shared/ipc'
 import { isWebUrl } from '../shared/url'
+import { ExperienceEngine } from './experiences'
 import { denyPermissions } from './security'
 import { cleanUserAgent } from './user-agent'
+
+/** WCAG 1.4.10: the narrowest width a page must reflow to without sideways scrolling. */
+export const NARROW_WIDTH = 320
 
 /** The site's own session: cookies survive restarts so the owner stays logged in. */
 export const SITE_PARTITION = 'persist:ansy-site'
@@ -17,16 +22,21 @@ const ERR_ABORTED = -3
  */
 export class SiteView {
   readonly view: WebContentsView
+  readonly experiences: ExperienceEngine
   private state: SiteState = { ...emptySiteState }
   /** The owner has a page open (or loading). */
   private visible = false
   /** Ansy's screens asked to cover the site, e.g. while a dialog is open. */
   private suppressed = false
+  /** Where Ansy's screens last put the site; kept so the narrow view can be centred in it. */
+  private frame: Bounds = { x: 0, y: 0, width: 0, height: 0 }
+  private narrow = false
 
   constructor(
     private readonly window: BrowserWindow,
     private readonly onState: (state: SiteState) => void,
     private readonly onCommand: (command: UiCommand) => void,
+    onReport: (report: ExperienceReport) => void,
   ) {
     const siteSession = session.fromPartition(SITE_PARTITION)
     denyPermissions(siteSession)
@@ -48,6 +58,10 @@ export class SiteView {
 
     const contents = this.view.webContents
     contents.setUserAgent(cleanUserAgent(contents.getUserAgent()))
+    this.experiences = new ExperienceEngine(contents, onReport, (narrow) => {
+      this.narrow = narrow
+      this.setBounds(this.frame)
+    })
 
     // A pop-up or target="_blank" link opens in this same view. Anything else is dropped.
     contents.setWindowOpenHandler(({ url }) => {
@@ -135,10 +149,13 @@ export class SiteView {
   }
 
   setBounds(bounds: Bounds): void {
+    this.frame = bounds
+    const width = Math.max(0, Math.round(bounds.width))
+    const narrowWidth = Math.min(NARROW_WIDTH, width)
     this.view.setBounds({
-      x: Math.round(bounds.x),
+      x: Math.round(bounds.x) + (this.narrow ? Math.floor((width - narrowWidth) / 2) : 0),
       y: Math.round(bounds.y),
-      width: Math.max(0, Math.round(bounds.width)),
+      width: this.narrow ? narrowWidth : width,
       height: Math.max(0, Math.round(bounds.height)),
     })
   }

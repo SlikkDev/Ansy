@@ -85,5 +85,8 @@ export const channels = {
   siteSuppress: 'site:suppress',
   siteGetState: 'site:get-state',
   siteState: 'site:state',
+  expSet: 'exp:set',
+  expGet: 'exp:get',
+  expReport: 'exp:report',
   uiCommand: 'ui:command',
 } as const

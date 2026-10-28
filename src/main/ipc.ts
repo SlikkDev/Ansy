@@ -80,4 +80,10 @@ export function registerIpc({ settings, getWindow, isDev }: Deps): void {
   ipcMain.handle(channels.siteSuppress, (event, suppressed: unknown) => {
     site(event)?.suppress(suppressed === true)
   })
+
+  ipcMain.handle(channels.expSet, (event, patch: unknown) => {
+    const view = site(event)
+    return view ? view.experiences.set(patch) : null
+  })
+  ipcMain.handle(channels.expGet, (event) => site(event)?.experiences.getReport() ?? null)
 }
