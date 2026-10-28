@@ -13,11 +13,19 @@ describe('sanitizeSettings', () => {
 
   it('keeps valid values and drops unknown fields', () => {
     expect(
-      sanitizeSettings({ locale: 'he', theme: 'light', updateCheck: false, extra: 1 }),
+      sanitizeSettings({
+        locale: 'he',
+        theme: 'light',
+        updateCheck: false,
+        slikkLink: false,
+        extra: 1,
+      }),
     ).toEqual({
       locale: 'he',
       theme: 'light',
       updateCheck: false,
+      slikkLink: false,
     })
+    expect(sanitizeSettings({ slikkLink: 'no' }).slikkLink).toBe(true)
   })
 })

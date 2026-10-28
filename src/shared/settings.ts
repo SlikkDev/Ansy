@@ -13,5 +13,6 @@ export function sanitizeSettings(raw: unknown): Settings {
     next.theme = r.theme as ThemeSetting
   }
   if (typeof r.updateCheck === 'boolean') next.updateCheck = r.updateCheck
+  if (typeof r.slikkLink === 'boolean') next.slikkLink = r.slikkLink
   return next
 }

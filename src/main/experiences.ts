@@ -9,6 +9,7 @@ import {
   type Observations,
   type SiteSwitches,
 } from '../shared/experiences'
+import { keyboardRules, type Finding, type RetestOutcome } from '../shared/findings'
 import type { Locale } from '../shared/i18n'
 import { emptyKeyboardReport, isKeyboardReport, type KeyboardReport } from '../shared/keyboard'
 import { sortIssues, toScanIssue, type ScanResult } from '../shared/scan'
@@ -21,7 +22,8 @@ import {
   MOUSE_OFF_CSS,
 } from './keyboard-helper'
 import { observeSource } from './observe'
-import { isRawScan, runAxe } from './scan'
+import { checkFocusableSource } from './retest'
+import { isRawScan, runAxe, runAxeOn } from './scan'
 
 /** The isolated world the helpers run in. Any id above 0 is out of the site's reach. */
 const HELPER_WORLD = 1
@@ -105,6 +107,34 @@ export class ExperienceEngine {
   /** Rings an element in the site. False when it is no longer there. */
   async show(target: string): Promise<boolean> {
     return (await this.runInWorld<boolean>(highlightSource(target))) === true
+  }
+
+  /**
+   * Is the finding still on the page? A scan finding runs its rule on its
+   * element; a keyboard-unreachable one asks whether the keyboard reaches it
+   * now. Anything else, including an element that is gone, is for the owner.
+   */
+  async checkFinding(finding: Finding): Promise<RetestOutcome> {
+    if (this.contents.isDestroyed() || !finding.element || !finding.rule) return 'unknown'
+    try {
+      if (finding.kind === 'scan') {
+        const result = await runAxeOn(
+          this.contents,
+          HELPER_WORLD,
+          this.getLocale(),
+          finding.element.target,
+          finding.rule.id,
+        )
+        return result === 'missing' ? 'unknown' : result
+      }
+      if (finding.kind === 'keyboard' && finding.rule.id === keyboardRules.unreachable.id) {
+        const result = await this.runInWorld<string>(checkFocusableSource(finding.element.target))
+        return result === 'focusable' ? 'fixed' : result === 'unfocusable' ? 'failing' : 'unknown'
+      }
+    } catch (error) {
+      console.error('Check again failed', error)
+    }
+    return 'unknown'
   }
 
   /** Starts the keyboard trail over, keeping what the page cannot reach. */

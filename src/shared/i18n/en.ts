@@ -226,6 +226,122 @@ export const en = {
   'exp.scan.impact.moderate': 'Moderate',
   'exp.scan.impact.minor': 'Minor',
 
+  'panel.region': 'Experiences, tasks and findings',
+  'tabs.experiences': 'Experiences',
+  'tabs.tasks': 'Tasks',
+  'tabs.findings': 'Findings',
+
+  'tasks.title': 'Guided tasks',
+  'tasks.intro':
+    'Three things every visitor tries to do. Pick one, follow its steps with an experience on, and save whatever gets in the way.',
+  'tasks.goal': 'Goal',
+  'tasks.steps': 'Steps',
+  'tasks.try': 'Try it with',
+  'tasks.start': 'Start this task',
+  'tasks.current': 'Current task',
+  'tasks.finish': 'Finish the task',
+  'tasks.status.started': 'Task started: {name}',
+  'tasks.status.finished': 'Task finished',
+  'tasks.turnOn': 'Turn on {name}',
+
+  'task.contact': 'Find the contact details',
+  'task.contact.goal': 'Find a phone number, an email address or a contact form, and get to it.',
+  'task.contact.steps':
+    'Start from the home page.\nLook for “Contact” in the menu, the header or the footer.\nReach the details, and open the form if there is one.',
+  'task.form': 'Fill in a form',
+  'task.form.goal': 'Complete a form on the site, from the first field to the confirmation.',
+  'task.form.steps':
+    'Open a form: contact, newsletter, booking or sign-up.\nFill in every field, including any drop-down or checkbox.\nSubmit it, and make sure you can tell that it worked, or what went wrong.',
+  'task.purchase': 'Complete a purchase or booking',
+  'task.purchase.goal': 'Choose a product or a slot, and get as far as the site lets you.',
+  'task.purchase.steps':
+    'Pick a product, a service or a date.\nChange a choice: colour, size, quantity or time.\nGo through the cart or the booking steps, up to payment.',
+
+  'findings.title': 'Findings',
+  'findings.intro':
+    'What you saved while using the site. Export it as a report for whoever builds the site.',
+  'findings.empty':
+    'Nothing saved yet. While an experience runs, use “Save as finding” on what Ansy noticed, or “Note a finding” for what you met yourself.',
+  'findings.site': 'Site',
+  'findings.count': '{count} findings',
+  'findings.one': '1 finding',
+  'findings.noteNew': 'Note a finding',
+  'findings.save': 'Save as finding',
+  'findings.exportPdf': 'Export PDF…',
+  'findings.saveText': 'Save as text…',
+  'findings.copy': 'Copy as text',
+  'findings.copied': 'Copied. Paste it into an email or a ticket.',
+  'findings.saved': 'Saved to {path}',
+  'findings.exportFailed': 'The report could not be made. Try again.',
+  'findings.slikkLink': 'End reports with an “Ask Slikk.Dev to fix this” link',
+  'findings.page': 'Page',
+  'findings.when': 'When',
+  'findings.experience': 'Experience',
+  'findings.task': 'Task',
+  'findings.noTask': 'No task',
+  'findings.noExperience': 'No experience on',
+  'findings.note': 'Your note',
+  'findings.saw': 'What Ansy saw',
+  'findings.element': 'Element',
+  'findings.severity': 'Severity',
+  'findings.severity.owner': 'Reported by the owner',
+  'findings.screenshot': 'Screenshot',
+  'findings.screenshotAlt': 'Screenshot of {title}, with the element ringed',
+  'findings.screenshotShow': 'Show the screenshot',
+  'findings.retest': 'Check again',
+  'findings.retesting': 'Opening the page and checking…',
+  'findings.retest.fixed': 'Fixed',
+  'findings.retest.failing': 'Still there',
+  'findings.retest.unknown': 'Ansy couldn’t tell',
+  'findings.retest.ask': 'Ansy reopened the page with the experience on. Look at it, then say:',
+  'findings.retest.at': 'Checked {date}: {outcome}',
+  'findings.retest.busy': 'Another check is still running.',
+  'findings.delete': 'Delete',
+  'findings.deleteSure': 'Delete for good',
+  'findings.keep': 'Keep',
+  'findings.status.deleted': 'Finding deleted',
+  'findings.status.saved': 'Finding saved',
+
+  'capture.title': 'Save a finding',
+  'capture.saw': 'What Ansy saw',
+  'capture.page': 'Page',
+  'capture.note': 'Your note',
+  'capture.noteHint': 'What you tried, what happened, and what you expected instead.',
+  'capture.needNote': 'Write what you noticed first.',
+  'capture.task': 'Task',
+  'capture.experience': 'Experience',
+  'capture.none': 'None',
+  'capture.screenshot': 'Keep the screenshot',
+  'capture.screenshotAlt': 'The page as it looks now',
+  'capture.noScreenshot': 'Ansy couldn’t take a screenshot of the page.',
+  'capture.save': 'Save finding',
+  'capture.cancel': 'Cancel',
+  'capture.saved': 'Saved. It is waiting under Findings.',
+  'capture.failed': 'The finding could not be saved.',
+
+  'report.title': 'Accessibility findings for {site}',
+  'report.subtitle': 'Made with Ansy {version} on {date}',
+  'report.what': 'What this is',
+  'report.whatBody':
+    'The owner of this site used it the way people with disabilities do, with Ansy, a free testing tool, and saved what got in the way. Each finding names the page, the element and, where there is one, the WCAG success criterion it breaks. Every one points to a change in the site’s own code.',
+  'report.severityIntro':
+    'Critical and Serious stop someone outright. Moderate and Minor make things harder than they should be. “Reported by the owner” is something the owner met while using the site; Ansy did not measure it.',
+  'report.finding': 'Finding {n} of {total}',
+  'report.closing': 'Sending this to your developer',
+  'report.closingBody':
+    'Hand this report to whoever builds or maintains the site. Ask them to fix each finding in the site’s own code, worst first, and to send it back for another check: Ansy can open every page again. An overlay or a plug-in that promises to fix accessibility will not; the fixes belong in the site.',
+  'report.slikk': 'Ask Slikk.Dev to fix this',
+  'report.slikkBody': 'Slikk.Dev, the studio that built Ansy, fixes sites like this one.',
+  'report.madeWith': 'Made with Ansy, free and open source',
+
+  // Ansy's own rules for what the keyboard helper finds, in the same voice as the scan's.
+  'rule.keyboard-trap':
+    'Once Tab lands here, it cannot leave. Someone without a mouse is stuck on this element, and the only way out is closing the page. Let Tab and Escape move on.',
+  'rule.focus-visible':
+    'When this element has keyboard focus, nothing shows it. Someone moving with Tab cannot tell where they are. Give it a visible focus style, or leave the browser’s own in place.',
+  'rule.keyboard-unreachable':
+    'This reacts to a click, but Tab never reaches it. Someone without a mouse cannot use it at all. Make it a real button or link, or give it tabindex=0 and a key handler.',
+
   // The scan's rules in Ansy's words: who it stops, and what to do. Keys match axe-core rule ids.
   'rule.color-contrast':
     'The text is too close in colour to its background. People with low vision or colour blindness, and anyone in sunlight, lose it. Aim for 4.5:1, or 3:1 for large text.',

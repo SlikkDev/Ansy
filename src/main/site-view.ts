@@ -16,6 +16,12 @@ export const SITE_PARTITION = 'persist:ansy-site'
 /** Chromium's "aborted" error: the owner navigated again or pressed stop. Not a failure. */
 const ERR_ABORTED = -3
 
+/** How long a page gets to load for "Check again" before Ansy gives up on it. */
+const LOAD_TIMEOUT = 20_000
+
+/** Screenshots wider than this are scaled down; the report page is narrower anyway. */
+const SHOT_MAX_WIDTH = 1400
+
 /**
  * The owner's site, in a sandboxed WebContentsView beside Ansy's screens.
  * Everything the renderer needs to know arrives as a SiteState; everything
@@ -126,6 +132,60 @@ export class SiteView {
     void this.view.webContents.loadURL(url).catch(() => {
       // did-fail-load carries the details; nothing to do here.
     })
+  }
+
+  /**
+   * Loads a page and waits for it. True once it has finished loading (or at
+   * least has its DOM when the rest drags on); false when it failed outright.
+   */
+  loadAndWait(url: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      const contents = this.view.webContents
+      let ready = false
+      let done = false
+      const finish = (ok: boolean) => {
+        if (done) return
+        done = true
+        clearTimeout(timer)
+        contents.off('dom-ready', onReady)
+        contents.off('did-finish-load', onLoaded)
+        contents.off('did-fail-load', onFailed)
+        resolve(ok)
+      }
+      const onReady = () => {
+        ready = true
+      }
+      const onLoaded = () => finish(true)
+      const onFailed = (_event: unknown, code: number, _d: string, _u: string, main: boolean) => {
+        if (main && code !== ERR_ABORTED) finish(false)
+      }
+      const timer = setTimeout(() => finish(ready), LOAD_TIMEOUT)
+      contents.on('dom-ready', onReady)
+      contents.on('did-finish-load', onLoaded)
+      contents.on('did-fail-load', onFailed)
+      if (!isWebUrl(url)) finish(false)
+      else this.load(url)
+    })
+  }
+
+  /**
+   * A picture of the site as it stands, with the element ringed when there is
+   * one, as PNG. Null when there is nothing to photograph.
+   */
+  async capture(target: string | null): Promise<Buffer | null> {
+    if (!this.visible || this.suppressed || this.state.error || !this.state.open) return null
+    try {
+      if (target) {
+        await this.experiences.show(target)
+        await new Promise((resolve) => setTimeout(resolve, 200))
+      }
+      let image = await this.view.webContents.capturePage()
+      if (image.isEmpty()) return null
+      if (image.getSize().width > SHOT_MAX_WIDTH) image = image.resize({ width: SHOT_MAX_WIDTH })
+      return image.toPNG()
+    } catch {
+      return null
+    }
   }
 
   back(): void {

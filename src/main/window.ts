@@ -1,6 +1,7 @@
 import { app, BrowserWindow, nativeTheme } from 'electron'
 import { join } from 'node:path'
 import type { ExperienceReport } from '../shared/experiences'
+import type { Finding } from '../shared/findings'
 import type { Locale } from '../shared/i18n'
 import type { Settings, SiteState, UiCommand } from '../shared/ipc'
 import { channels } from '../shared/ipc'
@@ -71,11 +72,15 @@ export class MainWindow {
     this.window.setBackgroundColor(windowBackground(theme))
   }
 
+  sendFindings(findings: Finding[]): void {
+    this.send(channels.findingsChanged, findings)
+  }
+
   private sendSiteState(state: SiteState): void {
     this.send(channels.siteState, state)
   }
 
-  private send(channel: string, payload: SiteState | ExperienceReport): void {
+  private send(channel: string, payload: SiteState | ExperienceReport | Finding[]): void {
     if (this.window.isDestroyed()) return
     this.window.webContents.send(channel, payload)
   }

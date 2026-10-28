@@ -245,6 +245,49 @@
   .field::placeholder {
     color: var(--ink-soft);
   }
+  textarea.field {
+    padding-block: 0.5rem;
+    line-height: 1.5;
+    resize: vertical;
+  }
+
+  /* The panel's tabs: one row, the open one underlined in the accent. */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .tab {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.5rem;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: none;
+    color: var(--ink-soft);
+    font: inherit;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .tab:hover {
+    color: var(--ink);
+    background: var(--surface-2);
+  }
+  .tab[aria-selected='true'] {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+  }
+  .tab:focus-visible {
+    outline-offset: -3px;
+    border-radius: 0;
+  }
 
   .card {
     background: var(--surface);

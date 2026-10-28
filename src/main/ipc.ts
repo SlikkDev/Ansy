@@ -1,22 +1,38 @@
-import { app, ipcMain, shell, type IpcMainInvokeEvent } from 'electron'
-import { resolveLocale } from '../shared/i18n'
+import { app, clipboard, ipcMain, shell, type IpcMainInvokeEvent } from 'electron'
+import {
+  forSite,
+  sanitizeFindingDraft,
+  sanitizeFindingPatch,
+  siteKeyOf,
+  type Finding,
+} from '../shared/findings'
+import { resolveLocale, translate, type Locale } from '../shared/i18n'
 import {
   channels,
   type AppInfo,
   type Bounds,
+  type ExportResult,
   type InitialState,
   type Settings,
 } from '../shared/ipc'
+import { plainTextReport, type ReportOptions } from '../shared/report'
 import { normalizeAddress } from '../shared/url'
+import type { FindingsStore } from './findings'
 import { isAllowedExternal } from './links'
+import { exportFindings } from './report'
+import { retestFinding } from './retest'
 import type { SettingsStore } from './settings'
 import type { MainWindow } from './window'
 
 interface Deps {
   settings: SettingsStore
+  findings: FindingsStore
   getWindow: () => MainWindow | null
   isDev: boolean
 }
+
+const isId = (value: unknown): value is string =>
+  typeof value === 'string' && /^[0-9a-f-]{36}$/.test(value)
 
 function isBounds(value: unknown): value is Bounds {
   if (!value || typeof value !== 'object') return false
@@ -27,7 +43,9 @@ function isBounds(value: unknown): value is Bounds {
 }
 
 /** Every channel Ansy's screens can call. Inputs are validated; the site view is never handed raw input. */
-export function registerIpc({ settings, getWindow, isDev }: Deps): void {
+export function registerIpc({ settings, findings, getWindow, isDev }: Deps): void {
+  const locale = (): Locale => resolveLocale(settings.get().locale, app.getLocale())
+
   // Synchronous on purpose: the preload needs locale and theme before the first paint.
   ipcMain.on(channels.appInitial, (event) => {
     const current = settings.get()
@@ -92,4 +110,91 @@ export function registerIpc({ settings, getWindow, isDev }: Deps): void {
     return site(event)?.experiences.show(target) ?? false
   })
   ipcMain.handle(channels.expKeyboardReset, (event) => site(event)?.experiences.resetKeyboard())
+
+  // Findings. The last screenshot taken waits here until the owner saves or starts another.
+  let pending: Buffer | null = null
+  let retesting = false
+
+  ipcMain.handle(channels.findingsList, (): Finding[] => findings.list())
+  ipcMain.handle(channels.findingsSnapshot, async (event, target: unknown) => {
+    const view = site(event)
+    if (!view) return null
+    const selector = typeof target === 'string' && target && target.length <= 2000 ? target : null
+    pending = await view.capture(selector)
+    return pending ? `data:image/png;base64,${pending.toString('base64')}` : null
+  })
+  ipcMain.handle(channels.findingsAdd, (event, raw: unknown): Finding | null => {
+    if (!site(event)) return null
+    const draft = sanitizeFindingDraft(raw)
+    if (!draft) return null
+    const png = pending
+    pending = null
+    return findings.add(draft, png)
+  })
+  ipcMain.handle(channels.findingsUpdate, (_event, id: unknown, patch: unknown) =>
+    isId(id) ? findings.update(id, sanitizeFindingPatch(patch)) : null,
+  )
+  ipcMain.handle(channels.findingsRemove, (_event, id: unknown) =>
+    isId(id) ? findings.remove(id) : false,
+  )
+  ipcMain.handle(channels.findingsScreenshot, (_event, id: unknown) => {
+    const png = isId(id) ? findings.readScreenshot(id) : null
+    return png ? `data:image/png;base64,${png.toString('base64')}` : null
+  })
+  ipcMain.handle(channels.findingsRetest, async (event, id: unknown): Promise<Finding | null> => {
+    const view = site(event)
+    const finding = isId(id) ? findings.get(id) : null
+    if (!view || !finding || retesting) return null
+    retesting = true
+    try {
+      const outcome = await retestFinding(view, finding)
+      return findings.update(finding.id, { retest: { at: Date.now(), outcome, by: 'ansy' } })
+    } finally {
+      retesting = false
+    }
+  })
+
+  const reportOptions = (list: Finding[], siteKey: unknown): ReportOptions | null => {
+    const selected = forSite(list, typeof siteKey === 'string' ? siteKey : null)
+    const first = selected[0]
+    if (!first) return null
+    const current = locale()
+    return {
+      locale: current,
+      t: (key, vars) => translate(current, key, vars),
+      site: typeof siteKey === 'string' ? siteKey : siteKeyOf(first.url),
+      version: app.getVersion(),
+      slikkLink: settings.get().slikkLink,
+    }
+  }
+  ipcMain.handle(
+    channels.findingsExport,
+    async (event, format: unknown, siteKey: unknown): Promise<ExportResult> => {
+      const win = getWindow()
+      if (!win || event.sender !== win.window.webContents) return { ok: false, canceled: false }
+      if (format !== 'pdf' && format !== 'text') return { ok: false, canceled: false }
+      const list = findings.list()
+      const options = reportOptions(list, siteKey)
+      if (!options) return { ok: false, canceled: false }
+      try {
+        return await exportFindings(
+          win.window,
+          findings,
+          forSite(list, options.site),
+          format,
+          options,
+        )
+      } catch (error) {
+        console.error('Export failed', error)
+        return { ok: false, canceled: false }
+      }
+    },
+  )
+  ipcMain.handle(channels.findingsCopy, (_event, siteKey: unknown): boolean => {
+    const list = findings.list()
+    const options = reportOptions(list, siteKey)
+    if (!options) return false
+    clipboard.writeText(plainTextReport(forSite(list, options.site), options))
+    return true
+  })
 }

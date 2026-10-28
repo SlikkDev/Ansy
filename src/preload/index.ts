@@ -1,9 +1,12 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { ExperienceReport, ExperienceState } from '../shared/experiences'
+import type { Finding, FindingDraft, FindingPatch } from '../shared/findings'
 import {
   channels,
   type AppInfo,
   type Bounds,
+  type ExportFormat,
+  type ExportResult,
   type InitialState,
   type Settings,
   type SiteState,
@@ -56,6 +59,28 @@ export const ansy = {
     scan: (): Promise<ExperienceReport | null> => ipcRenderer.invoke(channels.expScan),
     show: (target: string): Promise<boolean> => ipcRenderer.invoke(channels.expShow, target),
     resetKeyboard: (): Promise<void> => ipcRenderer.invoke(channels.expKeyboardReset),
+  },
+  findings: {
+    list: (): Promise<Finding[]> => ipcRenderer.invoke(channels.findingsList),
+    /** Rings the element (if any) and photographs the site; a preview comes back, the main process keeps the picture for `add`. */
+    snapshot: (target: string | null): Promise<string | null> =>
+      ipcRenderer.invoke(channels.findingsSnapshot, target),
+    add: (draft: FindingDraft): Promise<Finding | null> =>
+      ipcRenderer.invoke(channels.findingsAdd, draft),
+    update: (id: string, patch: FindingPatch): Promise<Finding | null> =>
+      ipcRenderer.invoke(channels.findingsUpdate, id, patch),
+    remove: (id: string): Promise<boolean> => ipcRenderer.invoke(channels.findingsRemove, id),
+    /** The stored screenshot as a data URL, for the findings list. */
+    screenshot: (id: string): Promise<string | null> =>
+      ipcRenderer.invoke(channels.findingsScreenshot, id),
+    /** Opens the page again with the same experience and checks whether the finding still holds. */
+    retest: (id: string): Promise<Finding | null> =>
+      ipcRenderer.invoke(channels.findingsRetest, id),
+    export: (format: ExportFormat, site: string): Promise<ExportResult> =>
+      ipcRenderer.invoke(channels.findingsExport, format, site),
+    copy: (site: string): Promise<boolean> => ipcRenderer.invoke(channels.findingsCopy, site),
+    onChange: (callback: (findings: Finding[]) => void): (() => void) =>
+      subscribe(channels.findingsChanged, callback),
   },
   ui: {
     onCommand: (callback: (command: UiCommand) => void): (() => void) =>
