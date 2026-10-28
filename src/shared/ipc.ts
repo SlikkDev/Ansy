@@ -88,5 +88,8 @@ export const channels = {
   expSet: 'exp:set',
   expGet: 'exp:get',
   expReport: 'exp:report',
+  expScan: 'exp:scan',
+  expShow: 'exp:show',
+  expKeyboardReset: 'exp:keyboard-reset',
   uiCommand: 'ui:command',
 } as const

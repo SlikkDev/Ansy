@@ -269,6 +269,14 @@
     color: var(--accent-ink);
   }
 
+  /* Scan severities: the two that stop someone outright are accent; the rest stay quiet. */
+  .badge-critical,
+  .badge-serious {
+    background: var(--accent-strong);
+    border-color: var(--accent-strong);
+    color: var(--accent-ink);
+  }
+
   /* The one call to action on a card. */
   .btn-primary {
     background: var(--accent-strong);

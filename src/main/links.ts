@@ -6,14 +6,18 @@ export const ALLOWED_EXTERNAL = {
   slikk: 'https://slikk.dev/',
   website: 'https://slikkdev.github.io/Ansy/',
   github: 'https://github.com/SlikkDev/Ansy',
+  /** Where axe-core's rule pages live: "More about this rule" on a scan result. */
+  rules: 'https://dequeuniversity.com/rules/axe/',
 } as const
 
 export function isAllowedExternal(url: string): boolean {
-  return Object.values(ALLOWED_EXTERNAL).some(
-    (allowed) =>
+  return Object.values(ALLOWED_EXTERNAL).some((allowed) => {
+    const inside = allowed.endsWith('/') ? allowed : `${allowed}/`
+    return (
       url === allowed ||
-      url.startsWith(`${allowed}/`) ||
+      url.startsWith(inside) ||
       url.startsWith(`${allowed}#`) ||
-      url.startsWith(`${allowed}?`),
-  )
+      url.startsWith(`${allowed}?`)
+    )
+  })
 }

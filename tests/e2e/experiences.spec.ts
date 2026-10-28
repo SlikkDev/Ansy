@@ -1,57 +1,24 @@
 /// <reference lib="dom" />
+import { expect, test, type ElectronApplication, type Page } from '@playwright/test'
 import {
-  _electron as electron,
-  expect,
-  test,
-  type ElectronApplication,
-  type Page,
-} from '@playwright/test'
-import { readFileSync } from 'node:fs'
-import { mkdtemp, readFile } from 'node:fs/promises'
-import { createServer, type Server } from 'node:http'
-import { tmpdir } from 'node:os'
-import { extname, join, normalize } from 'node:path'
+  card as cardIn,
+  inSite as inSiteOf,
+  launchAnsy,
+  noViolations as checkNoViolations,
+  siteView as siteViewOf,
+  type Harness,
+} from './harness'
 
-const fixtures = join(__dirname, '..', 'fixtures', 'sample-shop')
-const types: Record<string, string> = { '.html': 'text/html; charset=utf-8' }
-
+let h: Harness
 let app: ElectronApplication
 let page: Page
-let server: Server
-let shop: string
 
-const axeSource = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8')
-type AxeWindow = Window & { axe?: { run(context: Document): Promise<{ violations: unknown[] }> } }
-
-const noViolations = async (name: string) => {
-  const results = await page.evaluate(async (source) => {
-    const w = window as AxeWindow
-    if (!w.axe) new Function(source)()
-    return w.axe!.run(document)
-  }, axeSource)
-  expect(results.violations, `${name}: ${JSON.stringify(results.violations, null, 2)}`).toEqual([])
-}
-
-/** Runs code inside the site view and returns its result. */
-const inSite = <R>(code: string): Promise<R> =>
-  app.evaluate(({ BrowserWindow }, code) => {
-    const [win] = BrowserWindow.getAllWindows()
-    const view = win?.contentView.children[0] as Electron.WebContentsView | undefined
-    if (!view) throw new Error('no site view')
-    return view.webContents.executeJavaScript(code) as Promise<R>
-  }, code)
-
-const siteView = () =>
-  app.evaluate(({ BrowserWindow }) => {
-    const [win] = BrowserWindow.getAllWindows()
-    const view = win?.contentView.children[0] as Electron.WebContentsView | undefined
-    if (!view) throw new Error('no site view')
-    return {
-      zoom: Math.round(view.webContents.getZoomFactor() * 1000) / 1000,
-      muted: view.webContents.isAudioMuted(),
-      bounds: view.getBounds(),
-    }
-  })
+const noViolations = (name: string) => checkNoViolations(page, name)
+const inSite = <R>(code: string) => inSiteOf<R>(app, code)
+const siteView = () => siteViewOf(app)
+const card = (name: string) => cardIn(page, name)
+const turnOn = () => page.getByRole('button', { name: 'Turn on' })
+const turnOff = () => page.getByRole('button', { name: 'Turn off' })
 
 /** The colour of the "Buy now" button as painted, so vision emulation can be checked for real. */
 const buyButtonPixel = async () => {
@@ -75,51 +42,17 @@ const buyButtonPixel = async () => {
   return { r: bgra[2] ?? 0, g: bgra[1] ?? 0, b: bgra[0] ?? 0 }
 }
 
-/** A row's accessible name is its title plus its badge ("On", "Coming next"), so match the start. */
-const card = (name: string) =>
-  page.getByRole('button', { name: new RegExp('^' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) })
-const turnOn = () => page.getByRole('button', { name: 'Turn on' })
-const turnOff = () => page.getByRole('button', { name: 'Turn off' })
-
 test.beforeAll(async () => {
-  server = createServer(async (req, res) => {
-    const file =
-      normalize(new URL(req.url ?? '/', 'http://x').pathname).replace(/^\/+/, '') || 'index.html'
-    try {
-      const body = await readFile(join(fixtures, file))
-      res.writeHead(200, { 'content-type': types[extname(file)] ?? 'application/octet-stream' })
-      res.end(body)
-    } catch {
-      res.writeHead(404).end('not found')
-    }
-  })
-  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
-  const address = server.address()
-  if (!address || typeof address === 'string') throw new Error('no port')
-  shop = `http://127.0.0.1:${address.port}/`
-
-  const userData = await mkdtemp(join(tmpdir(), 'ansy-e2e-exp-'))
-  const args = ['.']
-  if (process.getuid?.() === 0) args.push('--no-sandbox')
-  app = await electron.launch({
-    args,
-    env: { ...process.env, ANSY_USER_DATA: userData, LANG: 'en_US.UTF-8' },
-  })
-  page = await app.firstWindow()
-  await page.waitForLoadState('domcontentloaded')
-
-  const addressBar = page.getByRole('textbox', { name: 'Site address' })
-  await addressBar.fill(shop)
-  await addressBar.press('Enter')
-  await expect(page.locator('[aria-live="polite"]').first()).toHaveText('Sample shop')
+  h = await launchAnsy('ansy-e2e-exp-')
+  ;({ app, page } = h)
+  await h.openShop()
 })
 
 test.afterAll(async () => {
-  await app?.close()
-  server?.close()
+  await h?.close()
 })
 
-test('every experience opens as a task card, and the three later ones say so', async () => {
+test('every experience opens as a task card, and the one still to come says so', async () => {
   await card('Color blindness').click()
   await expect(page.getByRole('button', { name: 'Color blindness' })).toHaveAttribute(
     'aria-expanded',
@@ -130,8 +63,8 @@ test('every experience opens as a task card, and the three later ones say so', a
   await noViolations('colour blindness card')
 
   await card('Ansy Reader (screen reader)').click()
-  await expect(page.getByText('Coming in a later step.').first()).toBeVisible()
-  // Opening a row closes the other; the later ones have nothing to switch on yet.
+  await expect(page.getByText('Coming in a later step.')).toBeVisible()
+  // Opening a row closes the other; the reader has nothing to switch on yet.
   await expect(turnOn()).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Color blindness' })).toHaveAttribute(
     'aria-expanded',

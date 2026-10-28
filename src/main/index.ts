@@ -34,8 +34,8 @@ if (!app.requestSingleInstanceLock()) {
   }
 
   const createWindow = () => {
-    const current = settings.get()
-    mainWindow = new MainWindow(current, resolveLocale(current.locale, app.getLocale()), isDev)
+    const locale = () => resolveLocale(settings.get().locale, app.getLocale())
+    mainWindow = new MainWindow(settings.get(), locale, isDev)
     mainWindow.window.on('closed', () => {
       mainWindow = null
     })

@@ -180,10 +180,134 @@ export const en = {
 
   'exp.reader.what':
     'A built-in screen reader with a virtual cursor and a visible transcript. Coming in a later step.',
+  'panel.show': 'Show on page',
+  'panel.showMissing': 'Ansy can’t find it on the page any more.',
+
   'exp.keyboard.what':
-    'Mouse off, a bold focus ring and a tab-order trail. Coming in a later step.',
+    'Ansy takes the mouse away, draws a bold ring on whatever has focus and numbers every stop, so you use the page the way someone who can’t hold a mouse does. It also notes where Tab gets stuck, where focus shows nothing, and what only a click can reach.',
+  'exp.keyboard.look':
+    'Something you can click but can’t Tab to.\nFocus that vanishes: you press Tab and can’t tell where you are.\nA place Tab can’t leave.\nAn order that jumps around the page instead of following it.',
+  'exp.keyboard.fidelity':
+    'A real keyboard with no mouse. The ring and the numbers are Ansy’s; that person sees only the site’s own focus style, which may be faint or missing.',
+  'exp.keyboard.mouseOff': 'Take the mouse away too',
+  'exp.keyboard.hint':
+    'Click into the site, or use “Jump into the site”, then move with Tab, Shift+Tab, Enter and Space.',
+  'exp.keyboard.stops': '{count} focus stops so far',
+  'exp.keyboard.noStops': 'No stops yet. Tab through the site and the trail appears.',
+  'exp.keyboard.traps': 'Tab gets stuck here',
+  'exp.keyboard.invisible': 'Focus shows nothing here',
+  'exp.keyboard.unreachable': 'Clickable, but the keyboard can’t reach it',
+  'exp.keyboard.clear': 'Clear the trail',
+
   'exp.scan.what':
-    'An automatic check of the page against WCAG, explained in plain words. Coming in a later step.',
+    'Ansy runs axe-core, the checker behind Lighthouse and most accessibility tools, on the page as it is right now, and explains each result in plain words. Automatic checks catch roughly a third of the barriers; the other experiences are for the rest.',
+  'exp.scan.look':
+    'Critical and serious first: those stop someone outright.\nThe same rule on many elements usually means one fix in a template.\n“Needs a look” is where only a person can decide.',
+  'exp.scan.fidelity':
+    'axe-core’s own rules, unchanged. What it flags is real; what it misses still needs you.',
+  'exp.scan.run': 'Scan this page',
+  'exp.scan.again': 'Scan again',
+  'exp.scan.scanning': 'Scanning…',
+  'exp.scan.failed': 'The scan could not run on this page. Reload it and try again.',
+  'exp.scan.summary': '{issues} problems on {elements} elements',
+  'exp.scan.clean':
+    'The automatic check found nothing. That doesn’t make the page accessible: about two thirds of barriers need a person. Try the other experiences.',
+  'exp.scan.passed': '{count} checks passed',
+  'exp.scan.incomplete': 'Needs a look',
+  'exp.scan.incompleteIntro': 'axe could not decide these by itself. Look at each one.',
+  'exp.scan.elements': '{count} elements',
+  'exp.scan.element': '1 element',
+  'exp.scan.wcag': 'WCAG {sc}, level {level}',
+  'exp.scan.wcagNoLevel': 'WCAG {sc}',
+  'exp.scan.bestPractice': 'Best practice, not a WCAG rule',
+  'exp.scan.more': 'More about this rule',
+  'exp.scan.impact.critical': 'Critical',
+  'exp.scan.impact.serious': 'Serious',
+  'exp.scan.impact.moderate': 'Moderate',
+  'exp.scan.impact.minor': 'Minor',
+
+  // The scan's rules in Ansy's words: who it stops, and what to do. Keys match axe-core rule ids.
+  'rule.color-contrast':
+    'The text is too close in colour to its background. People with low vision or colour blindness, and anyone in sunlight, lose it. Aim for 4.5:1, or 3:1 for large text.',
+  'rule.image-alt':
+    'This image has no text alternative. A screen reader says “image” or reads the file name. Describe what the image shows, or mark it decorative with an empty alt.',
+  'rule.input-image-alt':
+    'An image used as a button has no name. Screen reader users can’t tell what pressing it does. Give it an alt that says the action.',
+  'rule.role-img-alt':
+    'An element marked as an image has no name. Add an aria-label that says what it shows.',
+  'rule.svg-img-alt':
+    'An SVG marked as an image has no name. Add a title or an aria-label that says what it shows.',
+  'rule.object-alt':
+    'An embedded object has no text alternative. Put text inside it that says what it is.',
+  'rule.label':
+    'This form field has no label. A screen reader can’t say what to type here. Add a visible label, connected with for and id.',
+  'rule.select-name': 'This drop-down has no name. Add a label that says what the choice is.',
+  'rule.label-title-only':
+    'This field is named only by a tooltip. Add a visible label: tooltips don’t show on touch screens, and screen readers often skip them.',
+  'rule.form-field-multiple-labels':
+    'This field has more than one label. Screen readers may read only one of them. Keep one label.',
+  'rule.autocomplete-valid':
+    'The autocomplete value here isn’t one browsers understand, so they can’t fill the field in. Use a standard value, like email or given-name.',
+  'rule.link-name':
+    'This link has no text. A screen reader says “link” and nothing else. Add text, or an aria-label, that says where it goes.',
+  'rule.button-name':
+    'This button has no text. A screen reader says “button” and nothing else. Add text, or an aria-label, that says what it does.',
+  'rule.link-in-text-block':
+    'This link differs from the text around it by colour alone. People who can’t see that colour can’t find the link. Underline it, or add another cue.',
+  'rule.html-has-lang':
+    'The page doesn’t say what language it is in. Screen readers then read it with the wrong voice. Add lang to the html element.',
+  'rule.html-lang-valid':
+    'The page’s language code isn’t valid, so screen readers ignore it. Use a code like en or he.',
+  'rule.document-title':
+    'The page has no title. It is the first thing a screen reader says, and what the browser tab shows. Add a title.',
+  'rule.heading-order':
+    'A heading level is skipped. Screen reader users navigate by headings and lose the structure. Go one level at a time.',
+  'rule.empty-heading':
+    'This heading has no text. Screen reader users jump to it and hear nothing. Put text in it, or remove it.',
+  'rule.page-has-heading-one':
+    'The page has no main heading (h1). Screen reader users use it to find where the page starts. Add one.',
+  'rule.region':
+    'Some content sits outside any landmark (header, nav, main, footer). Screen reader users who jump by landmark miss it. Put it inside one.',
+  'rule.landmark-one-main':
+    'The page has no main landmark, or has more than one. Screen reader users jump to main to skip the chrome. Have exactly one.',
+  'rule.bypass':
+    'There is no way to skip the repeated top of the page. Keyboard users must Tab through all of it on every page. Add a skip link or landmarks.',
+  'rule.list':
+    'This list contains things that aren’t list items. Screen readers then misreport its length. Keep only li inside ul or ol.',
+  'rule.listitem':
+    'This list item sits outside a list. Screen readers won’t announce it as part of one. Wrap it in ul or ol.',
+  'rule.frame-title':
+    'This frame has no title. Screen reader users can’t tell what it contains. Add a title attribute.',
+  'rule.meta-viewport':
+    'The page blocks zooming. People with low vision can’t enlarge it. Remove user-scalable=no and maximum-scale.',
+  'rule.tabindex':
+    'A tabindex above 0 forces its own tab order. Keyboard users then jump around the page unexpectedly. Use 0 or -1 and let the page order decide.',
+  'rule.target-size':
+    'This control is too small to hit. People with a tremor, or big thumbs, miss it. Make it at least 24 by 24 pixels, or give it space.',
+  'rule.scrollable-region-focusable':
+    'This scrolling area can’t be reached by keyboard, so keyboard users can’t scroll it. Give it tabindex=0.',
+  'rule.nested-interactive':
+    'A control sits inside another control, like a button inside a link. Screen readers and keyboards can’t work both. Keep one.',
+  'rule.aria-hidden-focus':
+    'Something hidden from screen readers can still take focus. Keyboard users land on a thing that isn’t announced. Take it out of the tab order too.',
+  'rule.aria-required-attr':
+    'An ARIA role here is missing an attribute it needs, so screen readers can’t report its state. Add the required attribute.',
+  'rule.aria-valid-attr-value':
+    'An ARIA attribute has a value it doesn’t allow. Screen readers ignore it. Use one of the permitted values.',
+  'rule.aria-roles':
+    'This role isn’t a real ARIA role. Screen readers ignore it. Use a valid role, or none.',
+  'rule.aria-allowed-attr':
+    'This ARIA attribute isn’t allowed on this role. Screen readers ignore it. Remove it, or change the role.',
+  'rule.duplicate-id-aria':
+    'Two elements share an id that ARIA points at. Screen readers follow the wrong one. Make ids unique.',
+  'rule.video-caption':
+    'This video has no captions. Deaf and hard-of-hearing viewers lose what is said. Add a captions track.',
+  'rule.image-redundant-alt':
+    'The image’s alt repeats the text next to it, so screen readers say it twice. Use an empty alt here.',
+  'rule.th-has-data-cells':
+    'A table header has no cells it heads. Screen readers can’t match the header to the data. Fix the table structure.',
+  'rule.skip-link':
+    'The skip link points at something that doesn’t exist. It does nothing when pressed. Point it at the main content.',
 } as const
 
 export type MessageKey = keyof typeof en

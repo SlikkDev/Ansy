@@ -25,6 +25,9 @@ describe('switchesFor', () => {
       narrow: false,
       muted: false,
       observe: null,
+      keyboard: false,
+      mouseOff: false,
+      scan: false,
     })
   })
 
@@ -78,6 +81,22 @@ describe('switchesFor', () => {
   it('mutes and watches for captions', () => {
     expect(switchesFor(on({ active: 'noSound' }))).toMatchObject({ muted: true, observe: 'sound' })
   })
+
+  it('installs the keyboard helper, with or without the mouse', () => {
+    expect(switchesFor(on({ active: 'keyboard' }))).toMatchObject({
+      keyboard: true,
+      mouseOff: true,
+    })
+    expect(switchesFor(on({ active: 'keyboard', mouseOff: false }))).toMatchObject({
+      keyboard: true,
+      mouseOff: false,
+    })
+    expect(switchesFor(on({ active: 'zoom', mouseOff: true })).mouseOff).toBe(false)
+  })
+
+  it('turns the scan on by itself', () => {
+    expect(switchesFor(on({ active: 'scan' }))).toMatchObject({ scan: true, observe: null })
+  })
 })
 
 describe('sanitizeExperiencePatch', () => {
@@ -88,9 +107,13 @@ describe('sanitizeExperiencePatch', () => {
       vision: 'nope',
       narrow: 'yes',
       textSize: false,
+      mouseOff: 'no',
       extra: 1,
     })
     expect(next).toEqual({ ...defaultExperienceState, active: 'zoom', textSize: false })
+    expect(sanitizeExperiencePatch(defaultExperienceState, { mouseOff: false }).mouseOff).toBe(
+      false,
+    )
   })
 
   it('refuses experiences that are not available yet', () => {

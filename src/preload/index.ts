@@ -53,6 +53,9 @@ export const ansy = {
     get: (): Promise<ExperienceReport | null> => ipcRenderer.invoke(channels.expGet),
     onReport: (callback: (report: ExperienceReport) => void): (() => void) =>
       subscribe(channels.expReport, callback),
+    scan: (): Promise<ExperienceReport | null> => ipcRenderer.invoke(channels.expScan),
+    show: (target: string): Promise<boolean> => ipcRenderer.invoke(channels.expShow, target),
+    resetKeyboard: (): Promise<void> => ipcRenderer.invoke(channels.expKeyboardReset),
   },
   ui: {
     onCommand: (callback: (command: UiCommand) => void): (() => void) =>

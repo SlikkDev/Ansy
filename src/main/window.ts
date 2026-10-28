@@ -20,7 +20,7 @@ export class MainWindow {
   readonly window: BrowserWindow
   readonly site: SiteView
 
-  constructor(settings: Settings, _locale: Locale, isDev: boolean) {
+  constructor(settings: Settings, getLocale: () => Locale, isDev: boolean) {
     this.window = new BrowserWindow({
       width: 1280,
       height: 840,
@@ -49,6 +49,7 @@ export class MainWindow {
       (state) => this.sendSiteState(state),
       (command) => this.sendCommand(command),
       (report) => this.send(channels.expReport, report),
+      getLocale,
     )
 
     this.window.once('ready-to-show', () => this.window.show())

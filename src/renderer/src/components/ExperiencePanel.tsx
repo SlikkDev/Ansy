@@ -13,22 +13,29 @@ import {
 import type { MessageKey } from '../../../shared/i18n'
 import type { SiteState } from '../../../shared/ipc'
 import { useT, type T } from '../lib/i18n'
+import { KeyboardFindings, ScanResults } from './Findings'
 
 interface Props {
   report: ExperienceReport | null
   site: SiteState
   onChange: (patch: Partial<ExperienceState>) => void
+  /** Scan the page again. */
+  onScan: () => void
+  /** Start the keyboard trail over. */
+  onClearTrail: () => void
 }
 
 const nameKey = (id: ExperienceId) => `exp.${id}` as MessageKey
 const textKey = (id: ExperienceId, part: 'what' | 'look' | 'fidelity') =>
   `exp.${id}.${part}` as MessageKey
 
+const heading = 'mb-1 text-xs font-semibold uppercase tracking-wide text-ink-soft'
+
 /**
  * The experiences, each a task card: what changes, what to look for, how close
  * it is to the real thing, and the switch. One experience runs at a time.
  */
-export function ExperiencePanel({ report, site, onChange }: Props) {
+export function ExperiencePanel({ report, site, onChange, onScan, onClearTrail }: Props) {
   const t = useT()
   const active = report?.state.active ?? null
   const [open, setOpen] = useState<ExperienceId | null>(null)
@@ -65,11 +72,12 @@ export function ExperiencePanel({ report, site, onChange }: Props) {
             {info.available ? (
               <ExperienceCard
                 id={info.id}
-                state={report?.state ?? null}
-                observations={report?.observations ?? null}
+                report={report}
                 isActive={active === info.id}
                 siteOpen={site.open && !site.error}
                 onChange={onChange}
+                onScan={onScan}
+                onClearTrail={onClearTrail}
               />
             ) : (
               <p className="text-sm text-ink-soft">{t(textKey(info.id, 'what'))}</p>
@@ -125,52 +133,43 @@ function ExperienceRow({
 
 function ExperienceCard({
   id,
-  state,
-  observations,
+  report,
   isActive,
   siteOpen,
   onChange,
+  onScan,
+  onClearTrail,
 }: {
   id: ExperienceId
-  state: ExperienceState | null
-  observations: Observations | null
+  report: ExperienceReport | null
   isActive: boolean
   siteOpen: boolean
   onChange: (patch: Partial<ExperienceState>) => void
+  onScan: () => void
+  onClearTrail: () => void
 }) {
   const t = useT()
   const { fidelity } = experienceInfo(id)
   const lookFor = t(textKey(id, 'look')).split('\n')
+  const state = report?.state ?? null
+  const isScan = id === 'scan'
   return (
     <div className="flex flex-col gap-3 text-sm">
       <section>
-        <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">
-          {t('panel.whatHappens')}
-        </h3>
+        <h3 className={heading}>{t('panel.whatHappens')}</h3>
         <p>{t(textKey(id, 'what'))}</p>
       </section>
 
       {state && <Options id={id} state={state} onChange={onChange} />}
 
       <section>
-        <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">
-          {t('panel.lookFor')}
-        </h3>
+        <h3 className={heading}>{t('panel.lookFor')}</h3>
         <ul className="list-disc ps-5">
           {lookFor.map((line) => (
             <li key={line}>{line}</li>
           ))}
         </ul>
       </section>
-
-      {isActive && (id === 'motion' || id === 'noSound') && (
-        <section aria-live="polite">
-          <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">
-            {t('panel.noticed')}
-          </h3>
-          <Noticed id={id} observations={observations} t={t} />
-        </section>
-      )}
 
       <p className="text-ink-soft">
         <span className="badge me-2">
@@ -179,16 +178,46 @@ function ExperienceCard({
         {t(textKey(id, 'fidelity'))}
       </p>
 
-      <button
-        type="button"
-        className={isActive ? 'btn' : 'btn btn-primary'}
-        aria-pressed={isActive}
-        disabled={!siteOpen && !isActive}
-        onClick={() => onChange({ active: isActive ? null : id })}
-      >
-        {isActive ? t('panel.turnOff') : t('panel.turnOn')}
-      </button>
+      <div className="flex flex-wrap gap-2">
+        {isScan && isActive && (
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={report?.scanning}
+            onClick={onScan}
+          >
+            {t('exp.scan.again')}
+          </button>
+        )}
+        <button
+          type="button"
+          className={isActive ? 'btn' : 'btn btn-primary'}
+          aria-pressed={isActive}
+          disabled={!siteOpen && !isActive}
+          onClick={() => onChange({ active: isActive ? null : id })}
+        >
+          {isActive ? t('panel.turnOff') : isScan ? t('exp.scan.run') : t('panel.turnOn')}
+        </button>
+      </div>
       {!siteOpen && !isActive && <p className="text-xs text-ink-soft">{t('panel.noSite')}</p>}
+
+      {isActive && (id === 'motion' || id === 'noSound') && (
+        <section aria-live="polite">
+          <h3 className={heading}>{t('panel.noticed')}</h3>
+          <Noticed id={id} observations={report?.observations ?? null} t={t} />
+        </section>
+      )}
+
+      {isActive && id === 'keyboard' && report?.keyboard && (
+        <>
+          <p className="text-ink-soft">{t('exp.keyboard.hint')}</p>
+          <KeyboardFindings report={report.keyboard} onClear={onClearTrail} />
+        </>
+      )}
+
+      {isActive && isScan && report && (
+        <ScanResults scan={report.scan} scanning={report.scanning} />
+      )}
     </div>
   )
 }
@@ -208,9 +237,7 @@ function Options({
     case 'colorBlindness':
       return (
         <fieldset>
-          <legend className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">
-            {t('exp.colorBlindness.mode')}
-          </legend>
+          <legend className={heading}>{t('exp.colorBlindness.mode')}</legend>
           {visionModes.map((mode) => (
             <label key={mode} className="flex items-center gap-2 py-0.5">
               <input
@@ -227,9 +254,7 @@ function Options({
     case 'blurLowContrast':
       return (
         <fieldset>
-          <legend className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">
-            {t('exp.blurLowContrast.mode')}
-          </legend>
+          <legend className={heading}>{t('exp.blurLowContrast.mode')}</legend>
           {blurModes.map((mode) => (
             <label key={mode} className="flex items-center gap-2 py-0.5">
               <input
@@ -246,9 +271,7 @@ function Options({
     case 'zoom':
       return (
         <fieldset>
-          <legend className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">
-            {t('exp.zoom.level')}
-          </legend>
+          <legend className={heading}>{t('exp.zoom.level')}</legend>
           {zoomLevels.map((level) => (
             <label key={level} className="flex items-center gap-2 py-0.5">
               <input
@@ -274,9 +297,7 @@ function Options({
     case 'largeText':
       return (
         <fieldset>
-          <legend className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-soft">
-            {t('panel.options')}
-          </legend>
+          <legend className={heading}>{t('panel.options')}</legend>
           <label className="flex items-center gap-2 py-0.5">
             <input
               type="checkbox"
@@ -292,6 +313,20 @@ function Options({
               onChange={(e) => onChange({ textSpacing: e.target.checked })}
             />
             {t('exp.largeText.spacing')}
+          </label>
+        </fieldset>
+      )
+    case 'keyboard':
+      return (
+        <fieldset>
+          <legend className={heading}>{t('panel.options')}</legend>
+          <label className="flex items-center gap-2 py-0.5">
+            <input
+              type="checkbox"
+              checked={state.mouseOff}
+              onChange={(e) => onChange({ mouseOff: e.target.checked })}
+            />
+            {t('exp.keyboard.mouseOff')}
           </label>
         </fieldset>
       )
