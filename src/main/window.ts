@@ -6,6 +6,7 @@ import type { Locale } from '../shared/i18n'
 import type { Settings, SiteState, UiCommand } from '../shared/ipc'
 import { channels } from '../shared/ipc'
 import type { ReaderEvent } from '../shared/reader'
+import type { UpdateStatus } from '../shared/update'
 import { pinToApp } from './security'
 import { SiteView } from './site-view'
 
@@ -78,13 +79,17 @@ export class MainWindow {
     this.send(channels.findingsChanged, findings)
   }
 
+  sendUpdate(status: UpdateStatus): void {
+    this.send(channels.updateStatus, status)
+  }
+
   private sendSiteState(state: SiteState): void {
     this.send(channels.siteState, state)
   }
 
   private send(
     channel: string,
-    payload: SiteState | ExperienceReport | Finding[] | ReaderEvent,
+    payload: SiteState | ExperienceReport | Finding[] | ReaderEvent | UpdateStatus,
   ): void {
     if (this.window.isDestroyed()) return
     this.window.webContents.send(channel, payload)

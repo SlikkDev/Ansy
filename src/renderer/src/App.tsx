@@ -8,6 +8,7 @@ import type { Finding } from '../../shared/findings'
 import { resolveLocale, type Locale } from '../../shared/i18n'
 import { emptySiteState, type InitialState, type Settings, type SiteState } from '../../shared/ipc'
 import type { TaskId } from '../../shared/tasks'
+import { idleUpdate, type UpdateStatus } from '../../shared/update'
 import { AboutDialog } from './components/AboutDialog'
 import { AddressBar, type AddressBarHandle } from './components/AddressBar'
 import { CaptureDialog, type CaptureDraft } from './components/CaptureDialog'
@@ -19,6 +20,7 @@ import { Panel, type PanelTab } from './components/Panel'
 import { SiteFrame } from './components/SiteFrame'
 import { TasksTab } from './components/TasksTab'
 import { LangSwitch, ThemeToggle } from './components/Toggles'
+import { UpdateBar } from './components/UpdateBar'
 import { ansy } from './lib/ansy'
 import { CaptureProvider, type Capture, type CaptureStart } from './lib/findings'
 import { applyLocale, I18nProvider, useT } from './lib/i18n'
@@ -36,6 +38,7 @@ export function App({ initial }: { initial: InitialState }) {
   const [tab, setTab] = useState<PanelTab>('experiences')
   const [draft, setDraft] = useState<CaptureDraft | null>(null)
   const [aboutOpen, setAboutOpen] = useState(false)
+  const [update, setUpdate] = useState<UpdateStatus>(idleUpdate)
   const addressRef = useRef<AddressBarHandle>(null)
   const captures = useRef(0)
   const isMac = initial.platform === 'darwin'
@@ -53,6 +56,11 @@ export function App({ initial }: { initial: InitialState }) {
   useEffect(() => {
     void ansy.findings.list().then(setFindings)
     return ansy.findings.onChange(setFindings)
+  }, [])
+
+  useEffect(() => {
+    void ansy.updates.status().then(setUpdate)
+    return ansy.updates.onStatus(setUpdate)
   }, [])
 
   const changeExperience = useCallback((patch: Partial<ExperienceState>) => {
@@ -141,6 +149,11 @@ export function App({ initial }: { initial: InitialState }) {
     void ansy.settings.set({ slikkLink }).then(setSettings)
   }, [])
 
+  const setUpdateCheck = useCallback((updateCheck: boolean) => {
+    setSettings((current) => ({ ...current, updateCheck }))
+    void ansy.settings.set({ updateCheck }).then(setSettings)
+  }, [])
+
   return (
     <I18nProvider locale={locale}>
       <CaptureProvider value={capture}>
@@ -152,6 +165,7 @@ export function App({ initial }: { initial: InitialState }) {
             findings={findings}
             task={task}
             tab={tab}
+            update={update}
             slikkLink={settings.slikkLink}
             onTab={setTab}
             onTask={setTask}
@@ -176,7 +190,13 @@ export function App({ initial }: { initial: InitialState }) {
             onClose={() => setDraft(null)}
             onSaved={() => setTab('findings')}
           />
-          <AboutDialog open={aboutOpen} onClose={() => setAboutOpen(false)} />
+          <AboutDialog
+            open={aboutOpen}
+            update={update}
+            updateCheck={settings.updateCheck}
+            onUpdateCheck={setUpdateCheck}
+            onClose={() => setAboutOpen(false)}
+          />
         </ReaderProvider>
       </CaptureProvider>
     </I18nProvider>
@@ -190,6 +210,7 @@ interface ShellProps {
   findings: Finding[]
   task: TaskId | null
   tab: PanelTab
+  update: UpdateStatus
   slikkLink: boolean
   onTab: (tab: PanelTab) => void
   onTask: (task: TaskId | null) => void
@@ -214,6 +235,7 @@ function Shell({
   findings,
   task,
   tab,
+  update,
   slikkLink,
   onTab,
   onTask,
@@ -260,6 +282,8 @@ function Shell({
           </button>
         </div>
       </header>
+
+      <UpdateBar status={update} />
 
       <div className="flex min-h-0 flex-1">
         <main id="site" className="relative min-w-0 flex-1" aria-label={t('site.region')}>

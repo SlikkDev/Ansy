@@ -77,6 +77,20 @@ export const en = {
   'about.builtBy': 'Built by',
   'about.credit': 'Built by Slikk.Dev, opens slikk.dev in your browser',
   'about.close': 'Close',
+  'about.updates': 'Updates',
+  'about.privacy': 'Privacy note',
+
+  'update.checkNow': 'Check now',
+  'update.checking': 'Checking…',
+  'update.none': 'Ansy {version} is up to date.',
+  'update.downloading': 'Downloading Ansy {version}… {percent}%',
+  'update.ready': 'Ansy {version} is ready. Restart to update.',
+  'update.restart': 'Restart now',
+  'update.later': 'Later',
+  'update.error': 'Could not check for updates. Try again later.',
+  'update.unsupported': 'This build is updated by the store or package it came from.',
+  'update.privacy':
+    'The update check asks GitHub Releases for the latest version and sends nothing about you or your sites.',
 
   'menu.file': 'File',
   'menu.edit': 'Edit',
@@ -94,6 +108,7 @@ export const en = {
   'menu.minimize': 'Minimize',
   'menu.close': 'Close window',
   'menu.about': 'About Ansy',
+  'menu.checkUpdates': 'Check for updates…',
   'menu.github': 'Ansy on GitHub',
   'menu.website': 'Ansy website',
   'panel.on': 'On',

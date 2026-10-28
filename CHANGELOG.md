@@ -8,6 +8,16 @@ All notable changes to Ansy are recorded here. The format follows
 
 ### Added
 
+- Self-updates for direct downloads: Ansy checks GitHub Releases when it
+  starts (About Ansy has the switch, and the Help menu a "Check for updates"
+  item), downloads a newer version in the background and offers a restart.
+  Copies from the Microsoft Store or a Linux package leave updates to those.
+- The release workflow: a version tag runs the checks, builds the installers
+  for macOS (Intel and Apple silicon, signed and notarized when the Apple
+  secrets are set), Windows (the installer and a Microsoft Store package) and
+  Linux (AppImage and .deb), and attaches them to a draft GitHub release.
+- A privacy note listing every network request the app can make, linked from
+  About Ansy, and a code signing policy in the README.
 - Ansy Reader: a built-in screen reader that reads the page's accessibility
   tree in order, with the everyday keys of NVDA and JAWS (arrows, H, K, B, F,
   E, L, G, D, T, 1 to 6, Enter, Tab followed, Escape), the system's own voice in

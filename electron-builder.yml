@@ -1,4 +1,7 @@
-# Installers. Unsigned until release 1.0 wires the Apple and Store identities.
+# Installers for the three systems. CI builds them unsigned on every pull
+# request; the release workflow (.github/workflows/release.yml) signs and
+# notarizes the Mac build when the Apple secrets are set, and publishes
+# everything to a draft GitHub release. See docs/release.md.
 appId: dev.slikk.ansy
 productName: Ansy
 copyright: Copyright © 2026 Slikk.Dev
@@ -16,17 +19,42 @@ npmRebuild: false
 mac:
   category: public.app-category.developer-tools
   target:
-    - dmg
-    - zip
+    - target: dmg
+      arch: [x64, arm64]
+    - target: zip
+      arch: [x64, arm64]
   darkModeSupport: true
+  # Developer ID signing picks up CSC_LINK / CSC_KEY_PASSWORD; notarization
+  # picks up APPLE_ID / APPLE_APP_SPECIFIC_PASSWORD / APPLE_TEAM_ID. Without
+  # them electron-builder skips both and says so.
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: resources/entitlements.mac.plist
+  entitlementsInherit: resources/entitlements.mac.plist
+  notarize: true
 win:
+  # The installer is unsigned until SignPath signs it; the Store package is
+  # re-signed by the Store. Neither needs a certificate here.
   target:
     - nsis
+    - appx
 nsis:
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true
   shortcutName: Ansy
+appx:
+  # Placeholders until Partner Center assigns the real identity; the release
+  # workflow overrides them from secrets when those exist.
+  identityName: SlikkDev.Ansy
+  publisher: CN=00000000-0000-0000-0000-000000000000
+  publisherDisplayName: Slikk.Dev
+  applicationId: Ansy
+  displayName: Ansy
+  backgroundColor: '#080808'
+  languages:
+    - en-US
+    - he-IL
 linux:
   target:
     - AppImage
@@ -42,3 +70,4 @@ publish:
   provider: github
   owner: SlikkDev
   repo: Ansy
+  releaseType: draft

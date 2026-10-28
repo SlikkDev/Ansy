@@ -5,12 +5,17 @@ import { ALLOWED_EXTERNAL } from './links'
 
 interface MenuHandlers {
   command: (command: UiCommand) => void
+  /** Null for builds that update through a store or package manager: the item is left out. */
+  checkUpdates: (() => void) | null
 }
 
 /** The app menu, rebuilt whenever the interface language changes. */
 export function buildMenu(locale: Locale, handlers: MenuHandlers, isDev: boolean): Menu {
   const t = (key: Parameters<typeof translate>[1]) => translate(locale, key)
   const isMac = process.platform === 'darwin'
+  const updates: MenuItemConstructorOptions[] = handlers.checkUpdates
+    ? [{ label: t('menu.checkUpdates'), click: handlers.checkUpdates }]
+    : []
 
   const appMenu: MenuItemConstructorOptions[] = isMac
     ? [
@@ -18,6 +23,7 @@ export function buildMenu(locale: Locale, handlers: MenuHandlers, isDev: boolean
           label: t('app.name'),
           submenu: [
             { label: t('menu.about'), click: () => handlers.command('open-about') },
+            ...updates,
             { type: 'separator' },
             { role: 'hide' },
             { role: 'hideOthers' },
@@ -74,6 +80,7 @@ export function buildMenu(locale: Locale, handlers: MenuHandlers, isDev: boolean
           ? []
           : [
               { type: 'separator' } as MenuItemConstructorOptions,
+              ...updates,
               { label: t('menu.about'), click: () => handlers.command('open-about') },
             ]),
       ],

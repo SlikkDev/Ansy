@@ -51,7 +51,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     env:
-      # No certificates yet: release 1.0 adds signing and notarization.
+      # Pull request builds are unsigned; the release workflow signs and notarizes.
       CSC_IDENTITY_AUTO_DISCOVERY: 'false'
     steps:
       - uses: actions/checkout@v4
@@ -69,6 +69,7 @@ jobs:
             dist/*.dmg
             dist/*.zip
             dist/*.exe
+            dist/*.appx
             dist/*.AppImage
             dist/*.deb
           if-no-files-found: error

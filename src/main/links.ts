@@ -6,6 +6,8 @@ export const ALLOWED_EXTERNAL = {
   slikk: 'https://slikk.dev/',
   website: 'https://slikkdev.github.io/Ansy/',
   github: 'https://github.com/SlikkDev/Ansy',
+  /** The privacy note: every network request Ansy makes, listed. */
+  privacy: 'https://github.com/SlikkDev/Ansy/blob/main/PRIVACY.md',
   /** Where axe-core's rule pages live: "More about this rule" on a scan result. */
   rules: 'https://dequeuniversity.com/rules/axe/',
 } as const

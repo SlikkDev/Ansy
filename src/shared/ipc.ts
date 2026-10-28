@@ -114,4 +114,7 @@ export const channels = {
   findingsCopy: 'findings:copy',
   findingsChanged: 'findings:changed',
   uiCommand: 'ui:command',
+  updateStatus: 'update:status',
+  updateCheck: 'update:check',
+  updateInstall: 'update:install',
 } as const

@@ -6,6 +6,7 @@ import { buildMenu } from './menu'
 import { registerPracticeScheme } from './practice'
 import { installSecurityHooks } from './security'
 import { SettingsStore } from './settings'
+import { Updater } from './updater'
 import { MainWindow } from './window'
 
 const isDev = !app.isPackaged && process.env.NODE_ENV !== 'production'
@@ -29,11 +30,19 @@ if (!app.requestSingleInstanceLock()) {
   let mainWindow: MainWindow | null = null
   let settings: SettingsStore
   let findings: FindingsStore
+  let updater: Updater
 
   const applyMenu = () => {
     const locale = resolveLocale(settings.get().locale, app.getLocale())
     Menu.setApplicationMenu(
-      buildMenu(locale, { command: (command) => mainWindow?.sendCommand(command) }, isDev),
+      buildMenu(
+        locale,
+        {
+          command: (command) => mainWindow?.sendCommand(command),
+          checkUpdates: updater.supported ? () => updater.check() : null,
+        },
+        isDev,
+      ),
     )
   }
 
@@ -63,9 +72,15 @@ if (!app.requestSingleInstanceLock()) {
     findings = new FindingsStore()
     findings.onChange((list) => mainWindow?.sendFindings(list))
 
-    registerIpc({ settings, findings, getWindow: () => mainWindow, isDev })
+    updater = new Updater(
+      (status) => mainWindow?.sendUpdate(status),
+      () => settings.get().updateCheck,
+    )
+
+    registerIpc({ settings, findings, updater, getWindow: () => mainWindow, isDev })
     applyMenu()
     createWindow()
+    updater.checkOnLaunch()
 
     app.on('activate', () => {
       if (!mainWindow) createWindow()
