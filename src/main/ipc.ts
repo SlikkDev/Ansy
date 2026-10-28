@@ -86,4 +86,10 @@ export function registerIpc({ settings, getWindow, isDev }: Deps): void {
     return view ? view.experiences.set(patch) : null
   })
   ipcMain.handle(channels.expGet, (event) => site(event)?.experiences.getReport() ?? null)
+  ipcMain.handle(channels.expScan, (event) => site(event)?.experiences.scanNow() ?? null)
+  ipcMain.handle(channels.expShow, (event, target: unknown) => {
+    if (typeof target !== 'string' || !target || target.length > 2000) return false
+    return site(event)?.experiences.show(target) ?? false
+  })
+  ipcMain.handle(channels.expKeyboardReset, (event) => site(event)?.experiences.resetKeyboard())
 }

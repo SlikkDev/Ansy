@@ -29,9 +29,13 @@ reports; the only network traffic is the site you open.
 Each experience is a task card: what changes, what to look for, and how close
 the simulation is to the real thing. The switches that change how the site
 renders (colour vision, forced colours, media preferences, font size, zoom) are
-the same DevTools commands Chrome itself uses. A small helper runs inside the
-page, in a world the site's scripts cannot see, and only reads: it counts the
-animations that keep moving and the videos without captions.
+the same DevTools commands Chrome itself uses. Small helpers run inside the
+page, in a world the site's scripts cannot see: one counts the animations that
+keep moving and the videos without captions, one draws the keyboard-only focus
+ring and numbered trail and notes what the keyboard cannot do, and one runs
+[axe-core](https://github.com/dequelabs/axe-core) for the automatic scan, whose
+results Ansy explains in plain words, in both languages, and maps to their WCAG
+success criteria.
 
 ### Develop
 

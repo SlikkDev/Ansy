@@ -39,11 +39,20 @@ export function App({ initial }: { initial: InitialState }) {
 
   const changeExperience = useCallback((patch: Partial<ExperienceState>) => {
     // Show the choice at once; the main process confirms (and adds what it noticed) right after.
-    setReport((current) =>
-      current ? { ...current, state: sanitizeExperiencePatch(current.state, patch) } : current,
-    )
+    setReport((current) => {
+      if (!current) return current
+      const state = sanitizeExperiencePatch(current.state, patch)
+      const startsScan = state.active === 'scan' && current.state.active !== 'scan'
+      return { ...current, state, scanning: current.scanning || startsScan }
+    })
     void ansy.experiences.set(patch).then((next) => next && setReport(next))
   }, [])
+
+  const scanAgain = useCallback(() => {
+    void ansy.experiences.scan().then((next) => next && setReport(next))
+  }, [])
+
+  const clearTrail = useCallback(() => void ansy.experiences.resetKeyboard(), [])
 
   useEffect(
     () =>
@@ -92,6 +101,8 @@ export function App({ initial }: { initial: InitialState }) {
         site={site}
         report={report}
         onExperience={changeExperience}
+        onScan={scanAgain}
+        onClearTrail={clearTrail}
         locale={locale}
         theme={theme}
         isMac={isMac}
@@ -109,6 +120,8 @@ interface ShellProps {
   site: SiteState
   report: ExperienceReport | null
   onExperience: (patch: Partial<ExperienceState>) => void
+  onScan: () => void
+  onClearTrail: () => void
   locale: Locale
   theme: 'dark' | 'light'
   isMac: boolean
@@ -122,6 +135,8 @@ function Shell({
   site,
   report,
   onExperience,
+  onScan,
+  onClearTrail,
   locale,
   theme,
   isMac,
@@ -167,11 +182,17 @@ function Shell({
         </main>
         <aside
           id="panel"
-          className="w-80 shrink-0 overflow-y-auto border-s border-line bg-surface"
+          className="w-96 shrink-0 overflow-y-auto border-s border-line bg-surface"
           aria-labelledby="panel-title"
           tabIndex={-1}
         >
-          <ExperiencePanel report={report} site={site} onChange={onExperience} />
+          <ExperiencePanel
+            report={report}
+            site={site}
+            onChange={onExperience}
+            onScan={onScan}
+            onClearTrail={onClearTrail}
+          />
         </aside>
       </div>
     </div>

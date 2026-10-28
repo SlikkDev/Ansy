@@ -28,6 +28,15 @@
         color: #aaa;
         font-size: 11px;
       }
+      /* Looks clickable, is not focusable: the keyboard helper lists it. */
+      .wish {
+        cursor: pointer;
+        text-decoration: underline;
+      }
+      /* No focus style at all: the keyboard helper notices when focus leaves it. */
+      .quiet:focus {
+        outline: none;
+      }
       /* Keeps moving even when the visitor asked for less motion: the motion experience counts it. */
       .ticker {
         display: inline-block;
@@ -54,8 +63,25 @@
     <p class="ticker">Free shipping this week only!</p>
     <form>
       <label>Email <input type="email" name="email" /></label>
+      <!-- No label at all: the scan's "label" rule. -->
+      <input type="text" name="coupon" />
       <button class="buy" type="button">Buy now</button>
     </form>
+    <!-- No alt: the scan's "image-alt" rule. A 1-pixel gif, so nothing is fetched. -->
+    <img
+      src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+      width="80"
+      height="80"
+    />
+    <div class="wish" onclick="this.textContent = 'Added'">Add to wishlist</div>
+    <p>Read the <a class="quiet" href="#terms">terms</a> before you buy.</p>
+    <!-- Keeps Tab to itself: a focus trap. -->
+    <div id="trap" tabindex="0">A widget that keeps Tab</div>
+    <script>
+      document.getElementById('trap').addEventListener('keydown', (event) => {
+        if (event.key === 'Tab') event.preventDefault()
+      })
+    </script>
     <!-- Media the no-sound and motion experiences look at. Neither has a real source. -->
     <video id="promo" autoplay muted loop width="160" height="90" aria-label="Promo video"></video>
     <video id="captioned" width="160" height="90" aria-label="Captioned video">

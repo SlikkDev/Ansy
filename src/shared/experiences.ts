@@ -4,6 +4,9 @@
  * view) and Ansy's screens (which show them as task cards).
  */
 
+import type { KeyboardReport } from './keyboard'
+import type { ScanResult } from './scan'
+
 export type ExperienceId =
   | 'colorBlindness'
   | 'blurLowContrast'
@@ -22,7 +25,7 @@ export type Fidelity = 'high' | 'medium'
 export interface ExperienceInfo {
   id: ExperienceId
   fidelity: Fidelity
-  /** The seven switch-based experiences work now; the rest arrive in later steps. */
+  /** Everything but Ansy Reader works now; the reader arrives in a later step. */
   available: boolean
 }
 
@@ -34,10 +37,10 @@ export const experiences: readonly ExperienceInfo[] = [
   { id: 'zoom', fidelity: 'high', available: true },
   { id: 'largeText', fidelity: 'high', available: true },
   { id: 'highContrast', fidelity: 'high', available: true },
-  { id: 'keyboard', fidelity: 'high', available: false },
+  { id: 'keyboard', fidelity: 'high', available: true },
   { id: 'noSound', fidelity: 'medium', available: true },
   { id: 'motion', fidelity: 'high', available: true },
-  { id: 'scan', fidelity: 'high', available: false },
+  { id: 'scan', fidelity: 'high', available: true },
 ]
 
 export const experienceIds: readonly ExperienceId[] = experiences.map((e) => e.id)
@@ -74,6 +77,8 @@ export interface ExperienceState {
   textSize: boolean
   /** The WCAG 1.4.12 text-spacing override. */
   textSpacing: boolean
+  /** Keyboard only: take the mouse away as well as drawing the trail. */
+  mouseOff: boolean
 }
 
 export const defaultExperienceState: ExperienceState = {
@@ -84,6 +89,7 @@ export const defaultExperienceState: ExperienceState = {
   narrow: false,
   textSize: true,
   textSpacing: true,
+  mouseOff: true,
 }
 
 /** What the in-page helper noticed, for the experiences that look for something. */
@@ -100,10 +106,16 @@ export interface Observations {
   embeddedPlayers: number
 }
 
-/** The state plus whatever the helper found on the current page, pushed to Ansy's screens. */
+/** The state plus whatever the helpers found on the current page, pushed to Ansy's screens. */
 export interface ExperienceReport {
   state: ExperienceState
   observations: Observations | null
+  /** What the keyboard helper has seen so far, while keyboard only runs. */
+  keyboard: KeyboardReport | null
+  /** The last automatic scan of the current page, while the scan runs. */
+  scan: ScanResult | null
+  /** A scan is due or under way. */
+  scanning: boolean
 }
 
 const PIXEL_FONT_DEFAULT = 16
@@ -122,6 +134,12 @@ export interface SiteSwitches {
   narrow: boolean
   muted: boolean
   observe: 'motion' | 'sound' | null
+  /** The keyboard helper: focus ring, trail and findings. */
+  keyboard: boolean
+  /** No pointer, no hover, no clicks. */
+  mouseOff: boolean
+  /** The automatic scan, run on each page. */
+  scan: boolean
 }
 
 export function switchesFor(state: ExperienceState): SiteSwitches {
@@ -134,6 +152,9 @@ export function switchesFor(state: ExperienceState): SiteSwitches {
     narrow: false,
     muted: false,
     observe: null,
+    keyboard: false,
+    mouseOff: false,
+    scan: false,
   }
   switch (state.active) {
     case 'colorBlindness':
@@ -156,6 +177,8 @@ export function switchesFor(state: ExperienceState): SiteSwitches {
           { name: 'prefers-contrast', value: 'more' },
         ],
       }
+    case 'keyboard':
+      return { ...off, keyboard: true, mouseOff: state.mouseOff }
     case 'motion':
       return {
         ...off,
@@ -164,6 +187,8 @@ export function switchesFor(state: ExperienceState): SiteSwitches {
       }
     case 'noSound':
       return { ...off, muted: true, observe: 'sound' }
+    case 'scan':
+      return { ...off, scan: true }
     default:
       return off
   }
@@ -201,6 +226,7 @@ export function sanitizeExperiencePatch(current: ExperienceState, raw: unknown):
   if (typeof r.narrow === 'boolean') next.narrow = r.narrow
   if (typeof r.textSize === 'boolean') next.textSize = r.textSize
   if (typeof r.textSpacing === 'boolean') next.textSpacing = r.textSpacing
+  if (typeof r.mouseOff === 'boolean') next.mouseOff = r.mouseOff
   return next
 }
 

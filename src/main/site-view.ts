@@ -1,5 +1,6 @@
 import { WebContentsView, session, type BrowserWindow, type Input } from 'electron'
 import type { ExperienceReport } from '../shared/experiences'
+import type { Locale } from '../shared/i18n'
 import { emptySiteState, type Bounds, type SiteState, type UiCommand } from '../shared/ipc'
 import { isWebUrl } from '../shared/url'
 import { ExperienceEngine } from './experiences'
@@ -37,6 +38,7 @@ export class SiteView {
     private readonly onState: (state: SiteState) => void,
     private readonly onCommand: (command: UiCommand) => void,
     onReport: (report: ExperienceReport) => void,
+    getLocale: () => Locale,
   ) {
     const siteSession = session.fromPartition(SITE_PARTITION)
     denyPermissions(siteSession)
@@ -58,10 +60,15 @@ export class SiteView {
 
     const contents = this.view.webContents
     contents.setUserAgent(cleanUserAgent(contents.getUserAgent()))
-    this.experiences = new ExperienceEngine(contents, onReport, (narrow) => {
-      this.narrow = narrow
-      this.setBounds(this.frame)
-    })
+    this.experiences = new ExperienceEngine(
+      contents,
+      onReport,
+      (narrow) => {
+        this.narrow = narrow
+        this.setBounds(this.frame)
+      },
+      getLocale,
+    )
 
     // A pop-up or target="_blank" link opens in this same view. Anything else is dropped.
     contents.setWindowOpenHandler(({ url }) => {
