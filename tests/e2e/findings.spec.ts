@@ -166,7 +166,7 @@ test('check again reopens the page and tells fixed from still there', async () =
 
   // Fixed: the server now sends the image with an alt.
   const page = await readFile(
-    join(__dirname, '..', 'fixtures', 'sample-shop', 'index.html'),
+    join(__dirname, '..', '..', 'resources', 'practice-shop', 'index.html'),
     'utf8',
   )
   h.serve('index.html', page.replace('<img\n      src=', '<img\n      alt="A red mug"\n      src='))

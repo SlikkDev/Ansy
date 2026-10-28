@@ -54,7 +54,9 @@
   </head>
   <body>
     <h1>Sample shop</h1>
-    <p>A small shop the tests open. It grows into the practice shop in a later step.</p>
+    <p>
+      A small shop built with the usual mistakes, for trying the experiences on. Nothing is sold.
+    </p>
     <nav aria-label="Main"><a href="index.html">Home</a> · <a href="contact.html">Contact</a></nav>
     <p>
       Red mug: <span class="status">in stock</span> · Blue mug:
@@ -65,7 +67,7 @@
       <label>Email <input type="email" name="email" /></label>
       <!-- No label at all: the scan's "label" rule. -->
       <input type="text" name="coupon" />
-      <button class="buy" type="button">Buy now</button>
+      <button class="buy" type="button" onclick="location.href = 'checkout.html'">Buy now</button>
     </form>
     <!-- No alt: the scan's "image-alt" rule. A 1-pixel gif, so nothing is fetched. -->
     <img

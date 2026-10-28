@@ -52,7 +52,7 @@ test.afterAll(async () => {
   await h?.close()
 })
 
-test('every experience opens as a task card, and the one still to come says so', async () => {
+test('every experience opens as a task card, one at a time', async () => {
   await card('Color blindness').click()
   await expect(page.getByRole('button', { name: 'Color blindness' })).toHaveAttribute(
     'aria-expanded',
@@ -63,13 +63,14 @@ test('every experience opens as a task card, and the one still to come says so',
   await noViolations('colour blindness card')
 
   await card('Ansy Reader (screen reader)').click()
-  await expect(page.getByText('Coming in a later step.')).toBeVisible()
-  // Opening a row closes the other; the reader has nothing to switch on yet.
-  await expect(turnOn()).toHaveCount(0)
+  await expect(page.getByText('An approximation')).toBeVisible()
+  // Opening a row closes the other.
+  await expect(turnOn()).toHaveCount(1)
   await expect(page.getByRole('button', { name: 'Color blindness' })).toHaveAttribute(
     'aria-expanded',
     'false',
   )
+  await card('Ansy Reader (screen reader)').click()
 })
 
 test('colour blindness repaints the site through Chromium', async () => {

@@ -1,17 +1,22 @@
 /**
- * "Show on page": scrolls the site to an element and rings it for a few
- * seconds. Runs in the helper's world and is shipped as source text, so it
- * stays self-contained.
+ * "Show on page" and the reader's visible cursor: scrolls the site to an
+ * element and rings it for a moment. Runs inside the site and is shipped as
+ * source text, so it stays self-contained. Takes the node itself (from
+ * Runtime.callFunctionOn) or a selector (from executeJavaScript).
  */
-export function highlightElement(selector: string): boolean {
+export function ringElement(target: Node | null, selector: string | null, ms: number): boolean {
   const ATTR = 'data-ansy-highlight'
   for (const old of Array.from(document.querySelectorAll(`[${ATTR}]`))) old.remove()
 
   let element: Element | null = null
-  try {
-    element = document.querySelector(selector)
-  } catch {
-    return false
+  if (target) {
+    element = target.nodeType === 1 ? (target as Element) : target.parentElement
+  } else if (selector) {
+    try {
+      element = document.querySelector(selector)
+    } catch {
+      return false
+    }
   }
   if (!element) return false
 
@@ -35,10 +40,13 @@ export function highlightElement(selector: string): boolean {
     'z-index:2147483646',
   ].join(';')
   document.documentElement.appendChild(box)
-  setTimeout(() => box.remove(), 4000)
+  setTimeout(() => box.remove(), ms)
   return true
 }
 
 /** The helper as source text, with the selector baked in. */
 export const highlightSource = (selector: string): string =>
-  `(${highlightElement.toString()})(${JSON.stringify(selector)})`
+  `(${ringElement.toString()})(null, ${JSON.stringify(selector)}, 4000)`
+
+/** For Runtime.callFunctionOn on a node: a shorter ring, Ansy Reader's visible cursor. */
+export const ringFunction = `function () { return (${ringElement.toString()})(this, null, 1500) }`

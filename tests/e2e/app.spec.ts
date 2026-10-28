@@ -12,7 +12,7 @@ import { mkdtemp, readFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { extname, join, normalize } from 'node:path'
 
-const fixtures = join(__dirname, '..', 'fixtures', 'sample-shop')
+const fixtures = join(__dirname, '..', '..', 'resources', 'practice-shop')
 const types: Record<string, string> = { '.html': 'text/html; charset=utf-8' }
 
 let app: ElectronApplication

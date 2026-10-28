@@ -15,6 +15,7 @@ import {
   type InitialState,
   type Settings,
 } from '../shared/ipc'
+import { isReaderCommand, MAX_ITEMS } from '../shared/reader'
 import { plainTextReport, type ReportOptions } from '../shared/report'
 import { normalizeAddress } from '../shared/url'
 import type { FindingsStore } from './findings'
@@ -33,6 +34,9 @@ interface Deps {
 
 const isId = (value: unknown): value is string =>
   typeof value === 'string' && /^[0-9a-f-]{36}$/.test(value)
+
+const isIndex = (value: unknown): value is number =>
+  Number.isInteger(value) && (value as number) >= 0 && (value as number) < MAX_ITEMS
 
 function isBounds(value: unknown): value is Bounds {
   if (!value || typeof value !== 'object') return false
@@ -110,6 +114,16 @@ export function registerIpc({ settings, findings, getWindow, isDev }: Deps): voi
     return site(event)?.experiences.show(target) ?? false
   })
   ipcMain.handle(channels.expKeyboardReset, (event) => site(event)?.experiences.resetKeyboard())
+
+  ipcMain.handle(channels.readerCommand, (event, command: unknown) => {
+    if (isReaderCommand(command)) return site(event)?.experiences.readerCommand(command)
+  })
+  ipcMain.handle(channels.readerShow, (event, index: unknown) =>
+    isIndex(index) ? (site(event)?.experiences.readerShow(index) ?? false) : false,
+  )
+  ipcMain.handle(channels.readerElement, (event, index: unknown) =>
+    isIndex(index) ? (site(event)?.experiences.readerElement(index) ?? null) : null,
+  )
 
   // Findings. The last screenshot taken waits here until the owner saves or starts another.
   let pending: Buffer | null = null

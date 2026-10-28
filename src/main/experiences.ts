@@ -1,5 +1,6 @@
-import type { WebContents } from 'electron'
+import type { Input, WebContents } from 'electron'
 import {
+  COVER_CSS,
   defaultExperienceState,
   sanitizeExperiencePatch,
   switchesFor,
@@ -9,9 +10,15 @@ import {
   type Observations,
   type SiteSwitches,
 } from '../shared/experiences'
-import { keyboardRules, type Finding, type RetestOutcome } from '../shared/findings'
+import {
+  keyboardRules,
+  type Finding,
+  type FindingElement,
+  type RetestOutcome,
+} from '../shared/findings'
 import type { Locale } from '../shared/i18n'
 import { emptyKeyboardReport, isKeyboardReport, type KeyboardReport } from '../shared/keyboard'
+import type { ReaderCommand, ReaderEvent } from '../shared/reader'
 import { sortIssues, toScanIssue, type ScanResult } from '../shared/scan'
 import { highlightSource } from './highlight'
 import {
@@ -22,6 +29,7 @@ import {
   MOUSE_OFF_CSS,
 } from './keyboard-helper'
 import { observeSource } from './observe'
+import { Reader } from './reader'
 import { checkFocusableSource } from './retest'
 import { isRawScan, runAxe, runAxeOn } from './scan'
 
@@ -38,7 +46,9 @@ const SCAN_DELAY = 800
 const KEYBOARD_POLL = 400
 
 /** The style sheets Ansy inserts into the page, by what they do. */
-type Sheet = 'spacing' | 'mouse'
+type Sheet = 'spacing' | 'mouse' | 'cover'
+
+const noSheets = (): Record<Sheet, string | null> => ({ spacing: null, mouse: null, cover: null })
 
 /**
  * Applies an ExperienceState to the site view. Every switch that changes how
@@ -57,7 +67,8 @@ export class ExperienceEngine {
   private running = false
   private rerun = false
   /** Keys of the sheets inserted into the current page. */
-  private sheets: Record<Sheet, string | null> = { spacing: null, mouse: null }
+  private sheets: Record<Sheet, string | null> = noSheets()
+  readonly reader: Reader
   private observeTimer: ReturnType<typeof setTimeout> | null = null
   private scanTimer: ReturnType<typeof setTimeout> | null = null
   private keyboardTimer: ReturnType<typeof setInterval> | null = null
@@ -69,10 +80,13 @@ export class ExperienceEngine {
     private readonly onReport: (report: ExperienceReport) => void,
     private readonly onNarrow: (narrow: boolean) => void,
     private readonly getLocale: () => Locale,
+    onReaderEvent: (event: ReaderEvent) => void,
   ) {
+    this.reader = new Reader(contents, onReaderEvent, () => this.report())
     // Zoom, injected CSS and the helpers are per page; bring them back after a load.
     contents.on('did-navigate', () => void this.reapplyAfterNavigation())
     contents.on('dom-ready', () => void this.reapplyAfterLoad())
+    contents.on('did-navigate-in-page', () => this.reader.pageChanged())
     contents.once('destroyed', () => this.dispose())
   }
 
@@ -83,6 +97,7 @@ export class ExperienceEngine {
       keyboard: this.keyboard,
       scan: this.scan,
       scanning: this.scanning,
+      reader: this.applied.reader ? this.reader.getReport() : null,
     }
   }
 
@@ -109,14 +124,45 @@ export class ExperienceEngine {
     return (await this.runInWorld<boolean>(highlightSource(target))) === true
   }
 
+  /** A key pressed in the site: true when Ansy Reader keeps it from the page. */
+  handleInput(input: Input): boolean {
+    return this.applied.reader && this.reader.handleInput(input)
+  }
+
+  readerCommand(command: ReaderCommand): Promise<void> {
+    return this.applied.reader ? this.reader.run(command) : Promise.resolve()
+  }
+
+  readerShow(index: number): Promise<boolean> {
+    return this.applied.reader ? this.reader.show(index) : Promise.resolve(false)
+  }
+
+  readerElement(index: number): Promise<FindingElement | null> {
+    return this.applied.reader ? this.reader.elementFor(index) : Promise.resolve(null)
+  }
+
+  /** Lifts the screen cover for the duration of `task`, e.g. a screenshot, and puts it back. */
+  async uncovered<T>(task: () => Promise<T>): Promise<T> {
+    if (!this.sheets.cover) return task()
+    await this.applySheet('cover', COVER_CSS, false)
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    try {
+      return await task()
+    } finally {
+      if (this.applied.cover) await this.applySheet('cover', COVER_CSS, true)
+    }
+  }
+
   /**
    * Is the finding still on the page? A scan finding runs its rule on its
    * element; a keyboard-unreachable one asks whether the keyboard reaches it
    * now. Anything else, including an element that is gone, is for the owner.
    */
   async checkFinding(finding: Finding): Promise<RetestOutcome> {
-    if (this.contents.isDestroyed() || !finding.element || !finding.rule) return 'unknown'
+    if (this.contents.isDestroyed() || !finding.rule) return 'unknown'
     try {
+      if (finding.kind === 'reader') return await this.reader.check(finding)
+      if (!finding.element) return 'unknown'
       if (finding.kind === 'scan') {
         const result = await runAxeOn(
           this.contents,
@@ -179,6 +225,10 @@ export class ExperienceEngine {
       tasks.push(this.applySheet('mouse', MOUSE_OFF_CSS, want.mouseOff))
     }
     if (want.keyboard !== was.keyboard) tasks.push(this.applyKeyboard(want.keyboard))
+    if (want.cover !== was.cover) tasks.push(this.applySheet('cover', COVER_CSS, want.cover))
+    if (want.reader !== was.reader) {
+      tasks.push(want.reader ? this.reader.start() : this.reader.stop())
+    }
     if (want.scan !== was.scan) {
       if (want.scan) this.scheduleScan()
       else this.dropScan()
@@ -201,9 +251,11 @@ export class ExperienceEngine {
     if (this.contents.isDestroyed()) return
     const want = this.applied
     this.generation += 1
-    this.sheets = { spacing: null, mouse: null }
+    this.sheets = noSheets()
     if (want.textSpacingCss) await this.applySheet('spacing', TEXT_SPACING_CSS, true)
     if (want.mouseOff) await this.applySheet('mouse', MOUSE_OFF_CSS, true)
+    if (want.cover) await this.applySheet('cover', COVER_CSS, true)
+    if (want.reader) this.reader.pageLoaded()
     if (want.keyboard) {
       await this.runInWorld(keyboardHelperSource)
       this.keyboard = { ...emptyKeyboardReport }
@@ -370,6 +422,7 @@ export class ExperienceEngine {
     this.observeTimer = null
     this.scanTimer = null
     this.keyboardTimer = null
+    void this.reader.stop()
   }
 }
 

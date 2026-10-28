@@ -37,6 +37,21 @@ ring and numbered trail and notes what the keyboard cannot do, and one runs
 results Ansy explains in plain words, in both languages, and maps to their WCAG
 success criteria.
 
+Ansy Reader is the built-in screen reader. It reads the page's accessibility
+tree, the same tree real screen readers are given, through the DevTools
+protocol, in the order a screen reader user hears it, with the everyday keys of
+NVDA and JAWS: the arrows, H for headings, K for links, B for buttons, F for
+form fields, Enter to activate, Tab followed as the page moves its own focus.
+The system's own voice speaks it in English or Hebrew, and every word also
+appears in a transcript, so a sighted owner sees exactly what a blind visitor
+hears, and nothing else. "Cover the screen" turns the site black for the full
+effect. The reader notes what it stumbled on: images, links, buttons and fields
+with no name, headings that skip a level, and pages with no landmarks. It is an
+approximation, not NVDA or VoiceOver, and the card says so.
+
+A practice shop is built in, at ansy://shop/: a small site with the usual
+mistakes, to try every experience on before turning to your own.
+
 Three guided tasks (find the contact details, fill in a form, complete a
 purchase or booking) give the owner something to do with each experience, and
 whatever gets in the way can be saved as a finding: the page, the element, a
@@ -71,11 +86,13 @@ src/
   main/      Electron main process: window, site view, settings, menu, security
   preload/   the typed bridge between the main process and the interface
   renderer/  the interface (React)
-  shared/    code both sides use: the string tables, settings, address parsing
+  shared/    code both sides use: the string tables, settings, address parsing,
+             the reader's reading order and words
+resources/   the app icon and the practice shop (also what the tests browse)
 tests/
   unit/      Vitest
   e2e/       Playwright, launching the built app
-  fixtures/  the sample shop the tests browse
+  fixtures/  accessibility trees captured from the practice shop
 ```
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for conventions and

@@ -5,6 +5,7 @@
  */
 
 import type { KeyboardReport } from './keyboard'
+import type { ReaderReport } from './reader'
 import type { ScanResult } from './scan'
 
 export type ExperienceId =
@@ -25,7 +26,7 @@ export type Fidelity = 'high' | 'medium'
 export interface ExperienceInfo {
   id: ExperienceId
   fidelity: Fidelity
-  /** Everything but Ansy Reader works now; the reader arrives in a later step. */
+  /** Switched on from the panel. All ten are; the flag stays for the next experience in the making. */
   available: boolean
 }
 
@@ -33,7 +34,7 @@ export interface ExperienceInfo {
 export const experiences: readonly ExperienceInfo[] = [
   { id: 'colorBlindness', fidelity: 'high', available: true },
   { id: 'blurLowContrast', fidelity: 'medium', available: true },
-  { id: 'reader', fidelity: 'medium', available: false },
+  { id: 'reader', fidelity: 'medium', available: true },
   { id: 'zoom', fidelity: 'high', available: true },
   { id: 'largeText', fidelity: 'high', available: true },
   { id: 'highContrast', fidelity: 'high', available: true },
@@ -61,6 +62,10 @@ export type BlurMode = (typeof blurModes)[number]
 export const zoomLevels = [2, 4] as const
 export type ZoomLevel = (typeof zoomLevels)[number]
 
+/** How fast Ansy Reader speaks. Experienced screen reader users go much faster still. */
+export const readerRates = ['slow', 'normal', 'fast'] as const
+export type ReaderRate = (typeof readerRates)[number]
+
 /**
  * Everything the switches remember. `active` is the one experience running;
  * the rest are each experience's options, kept so coming back finds them as
@@ -79,6 +84,11 @@ export interface ExperienceState {
   textSpacing: boolean
   /** Keyboard only: take the mouse away as well as drawing the trail. */
   mouseOff: boolean
+  /** Ansy Reader: say it aloud, not only in the transcript. */
+  readerVoice: boolean
+  readerRate: ReaderRate
+  /** Ansy Reader: black out the site, so the ears are all there is. */
+  readerCover: boolean
 }
 
 export const defaultExperienceState: ExperienceState = {
@@ -90,6 +100,9 @@ export const defaultExperienceState: ExperienceState = {
   textSize: true,
   textSpacing: true,
   mouseOff: true,
+  readerVoice: true,
+  readerRate: 'normal',
+  readerCover: false,
 }
 
 /** What the in-page helper noticed, for the experiences that look for something. */
@@ -116,6 +129,8 @@ export interface ExperienceReport {
   scan: ScanResult | null
   /** A scan is due or under way. */
   scanning: boolean
+  /** Where Ansy Reader is on the page, while it runs. */
+  reader: ReaderReport | null
 }
 
 const PIXEL_FONT_DEFAULT = 16
@@ -140,6 +155,10 @@ export interface SiteSwitches {
   mouseOff: boolean
   /** The automatic scan, run on each page. */
   scan: boolean
+  /** Ansy Reader: the accessibility tree read aloud, keys taken from the site. */
+  reader: boolean
+  /** The site painted black. */
+  cover: boolean
 }
 
 export function switchesFor(state: ExperienceState): SiteSwitches {
@@ -155,6 +174,8 @@ export function switchesFor(state: ExperienceState): SiteSwitches {
     keyboard: false,
     mouseOff: false,
     scan: false,
+    reader: false,
+    cover: false,
   }
   switch (state.active) {
     case 'colorBlindness':
@@ -189,10 +210,27 @@ export function switchesFor(state: ExperienceState): SiteSwitches {
       return { ...off, muted: true, observe: 'sound' }
     case 'scan':
       return { ...off, scan: true }
+    case 'reader':
+      return { ...off, reader: true, cover: state.readerCover }
     default:
       return off
   }
 }
+
+/**
+ * The screen cover: the site goes black and stays interactive underneath, so a
+ * sighted owner is left with what Ansy Reader says. A pseudo-element on the
+ * root sits above everything but the top layer, and it costs the page nothing.
+ */
+export const COVER_CSS = `
+html::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 2147483647;
+}
+`
 
 /**
  * WCAG 1.4.12: a page must survive these spacing values without losing content
@@ -227,6 +265,14 @@ export function sanitizeExperiencePatch(current: ExperienceState, raw: unknown):
   if (typeof r.textSize === 'boolean') next.textSize = r.textSize
   if (typeof r.textSpacing === 'boolean') next.textSpacing = r.textSpacing
   if (typeof r.mouseOff === 'boolean') next.mouseOff = r.mouseOff
+  if (typeof r.readerVoice === 'boolean') next.readerVoice = r.readerVoice
+  if (
+    typeof r.readerRate === 'string' &&
+    (readerRates as readonly string[]).includes(r.readerRate)
+  ) {
+    next.readerRate = r.readerRate as ReaderRate
+  }
+  if (typeof r.readerCover === 'boolean') next.readerCover = r.readerCover
   return next
 }
 

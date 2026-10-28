@@ -3,6 +3,7 @@ import { resolveLocale } from '../shared/i18n'
 import { FindingsStore } from './findings'
 import { registerIpc } from './ipc'
 import { buildMenu } from './menu'
+import { registerPracticeScheme } from './practice'
 import { installSecurityHooks } from './security'
 import { SettingsStore } from './settings'
 import { MainWindow } from './window'
@@ -20,6 +21,7 @@ if (!app.commandLine.hasSwitch('no-sandbox')) app.enableSandbox()
 // would otherwise phone Google on launch.
 app.commandLine.appendSwitch('disable-component-update')
 installSecurityHooks()
+registerPracticeScheme()
 
 if (!app.requestSingleInstanceLock()) {
   app.quit()

@@ -15,9 +15,9 @@ export interface TaskInfo {
 }
 
 export const tasks: readonly TaskInfo[] = [
-  { id: 'contact', experiences: ['keyboard', 'zoom', 'blurLowContrast', 'scan'] },
-  { id: 'form', experiences: ['keyboard', 'largeText', 'highContrast', 'scan'] },
-  { id: 'purchase', experiences: ['keyboard', 'colorBlindness', 'zoom', 'motion'] },
+  { id: 'contact', experiences: ['reader', 'keyboard', 'zoom', 'blurLowContrast', 'scan'] },
+  { id: 'form', experiences: ['keyboard', 'reader', 'largeText', 'highContrast', 'scan'] },
+  { id: 'purchase', experiences: ['reader', 'keyboard', 'colorBlindness', 'zoom', 'motion'] },
 ]
 
 export const taskIds: readonly TaskId[] = tasks.map((task) => task.id)

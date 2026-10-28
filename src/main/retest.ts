@@ -11,8 +11,13 @@ const SETTLE = 1000
  * decide comes back unknown, and the owner, looking at the reopened page, says.
  */
 export async function retestFinding(site: SiteView, finding: Finding): Promise<RetestOutcome> {
+  // A reader finding needs the reader to look again, whatever was on when it was saved.
   const active =
-    finding.experience && isAvailableExperience(finding.experience) ? finding.experience : null
+    finding.kind === 'reader'
+      ? 'reader'
+      : finding.experience && isAvailableExperience(finding.experience)
+        ? finding.experience
+        : null
   await site.experiences.set({ active })
   const loaded = await site.loadAndWait(finding.url)
   if (!loaded) return 'unknown'

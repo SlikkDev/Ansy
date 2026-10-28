@@ -3,6 +3,7 @@ import {
   blurModes,
   experienceInfo,
   experiences,
+  readerRates,
   visionModes,
   zoomLevels,
   type ExperienceId,
@@ -14,10 +15,12 @@ import type { MessageKey } from '../../../shared/i18n'
 import type { SiteState } from '../../../shared/ipc'
 import { useT, type T } from '../lib/i18n'
 import { KeyboardFindings, ScanResults } from './Findings'
+import { ReaderCard } from './ReaderCard'
 
 interface Props {
   report: ExperienceReport | null
   site: SiteState
+  platform: string
   onChange: (patch: Partial<ExperienceState>) => void
   /** Scan the page again. */
   onScan: () => void
@@ -35,7 +38,7 @@ const heading = 'mb-1 text-xs font-semibold uppercase tracking-wide text-ink-sof
  * The experiences, each a task card: what changes, what to look for, how close
  * it is to the real thing, and the switch. One experience runs at a time.
  */
-export function ExperiencePanel({ report, site, onChange, onScan, onClearTrail }: Props) {
+export function ExperiencePanel({ report, site, platform, onChange, onScan, onClearTrail }: Props) {
   const t = useT()
   const active = report?.state.active ?? null
   const [open, setOpen] = useState<ExperienceId | null>(null)
@@ -75,6 +78,7 @@ export function ExperiencePanel({ report, site, onChange, onScan, onClearTrail }
                 report={report}
                 isActive={active === info.id}
                 siteOpen={site.open && !site.error}
+                platform={platform}
                 onChange={onChange}
                 onScan={onScan}
                 onClearTrail={onClearTrail}
@@ -136,6 +140,7 @@ function ExperienceCard({
   report,
   isActive,
   siteOpen,
+  platform,
   onChange,
   onScan,
   onClearTrail,
@@ -144,6 +149,7 @@ function ExperienceCard({
   report: ExperienceReport | null
   isActive: boolean
   siteOpen: boolean
+  platform: string
   onChange: (patch: Partial<ExperienceState>) => void
   onScan: () => void
   onClearTrail: () => void
@@ -217,6 +223,10 @@ function ExperienceCard({
 
       {isActive && isScan && report && (
         <ScanResults scan={report.scan} scanning={report.scanning} />
+      )}
+
+      {isActive && id === 'reader' && report?.reader && (
+        <ReaderCard report={report.reader} platform={platform} />
       )}
     </div>
   )
@@ -329,6 +339,45 @@ function Options({
             {t('exp.keyboard.mouseOff')}
           </label>
         </fieldset>
+      )
+    case 'reader':
+      return (
+        <>
+          <fieldset>
+            <legend className={heading}>{t('panel.options')}</legend>
+            <label className="flex items-center gap-2 py-0.5">
+              <input
+                type="checkbox"
+                checked={state.readerVoice}
+                onChange={(e) => onChange({ readerVoice: e.target.checked })}
+              />
+              {t('exp.reader.voice')}
+            </label>
+            <label className="flex items-center gap-2 py-0.5">
+              <input
+                type="checkbox"
+                checked={state.readerCover}
+                onChange={(e) => onChange({ readerCover: e.target.checked })}
+              />
+              {t('exp.reader.cover')}
+            </label>
+            <p className="ps-6 text-xs text-ink-soft">{t('exp.reader.coverHint')}</p>
+          </fieldset>
+          <fieldset>
+            <legend className={heading}>{t('exp.reader.rate')}</legend>
+            {readerRates.map((rate) => (
+              <label key={rate} className="flex items-center gap-2 py-0.5">
+                <input
+                  type="radio"
+                  name={group}
+                  checked={state.readerRate === rate}
+                  onChange={() => onChange({ readerRate: rate })}
+                />
+                {t(`exp.reader.rate.${rate}` as MessageKey)}
+              </label>
+            ))}
+          </fieldset>
+        </>
       )
     default:
       return null

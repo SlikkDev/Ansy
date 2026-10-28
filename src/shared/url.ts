@@ -1,14 +1,20 @@
 /**
  * Address handling shared by the address bar and the main process.
- * Ansy opens web pages only: http and https. Everything else is refused.
+ * Ansy opens web pages only: http and https, plus its own practice shop at
+ * ansy://shop/. Everything else is refused.
  */
 
-const WEB_SCHEMES = new Set(['http:', 'https:'])
+const WEB_SCHEMES = new Set(['http:', 'https:', 'ansy:'])
 
-/** True for an absolute http(s) URL. */
+/** Where the bundled practice shop lives. The only ansy:// host there is. */
+export const PRACTICE_SHOP_URL = 'ansy://shop/'
+
+/** True for an absolute http(s) URL, or a page of the practice shop. */
 export function isWebUrl(value: string): boolean {
   try {
-    return WEB_SCHEMES.has(new URL(value).protocol)
+    const url = new URL(value)
+    if (url.protocol === 'ansy:') return url.host === 'shop'
+    return WEB_SCHEMES.has(url.protocol)
   } catch {
     return false
   }
