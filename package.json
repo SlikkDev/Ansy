@@ -1,0 +1,62 @@
+{
+  "name": "ansy",
+  "productName": "Ansy",
+  "version": "0.1.0",
+  "description": "A free, open-source desktop browser for experiencing your own website the way people with disabilities do, including the tools they use.",
+  "private": true,
+  "license": "MIT",
+  "author": {
+    "name": "Slikk.Dev",
+    "url": "https://slikk.dev/"
+  },
+  "homepage": "https://slikkdev.github.io/Ansy/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SlikkDev/Ansy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SlikkDev/Ansy/issues"
+  },
+  "main": "out/main/index.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "start": "electron-vite preview",
+    "lint": "eslint .",
+    "typecheck": "tsc -b",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "dist": "npm run build && electron-builder --publish never"
+  },
+  "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^24.19.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "axe-core": "^4.14.0",
+    "electron": "^45.1.0",
+    "electron-builder": "^26.18.0",
+    "electron-vite": "^6.0.0",
+    "eslint": "^9.39.5",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "playwright-core": "^1.63.0",
+    "prettier": "^3.9.10",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.1",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  }
+}
