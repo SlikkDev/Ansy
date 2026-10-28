@@ -12,7 +12,8 @@ Ansy is a testing and empathy tool. It is not an accessibility overlay, it never
 touches your live site, and it is not a compliance certificate.
 
 - Website: https://slikkdev.github.io/Ansy/ (Hebrew: https://slikkdev.github.io/Ansy/he/)
-- Status: version 1.0 is in development. Downloads for macOS and Windows are coming soon.
+- Status: version 1.0 is about to ship. Installers for macOS, Windows and Linux
+  will be on [GitHub Releases](https://github.com/SlikkDev/Ansy/releases).
 
 ## The app
 
@@ -24,7 +25,9 @@ by default. Every site opens in a sandboxed view that the main process controls;
 Ansy's own screens and the site never share a process.
 
 Ansy sends nothing anywhere. There are no accounts, no analytics and no crash
-reports; the only network traffic is the site you open.
+reports; the only network traffic is the site you open and, for direct
+downloads, a check of GitHub Releases for a newer version, which you can turn
+off. [`PRIVACY.md`](PRIVACY.md) lists every request the app can make.
 
 Each experience is a task card: what changes, what to look for, and how close
 the simulation is to the real thing. The switches that change how the site
@@ -81,14 +84,27 @@ On a Linux machine without a display, run the end-to-end tests under
 `xvfb-run -a`. Continuous integration runs all of the above on every pull
 request and builds unsigned installers for macOS, Windows and Linux.
 
+### Release
+
+A tag such as `v1.0.0` runs [`.github/workflows/release.yml`](.github/workflows/release.yml):
+the same checks, then installers for the three systems attached to a draft
+GitHub release, which the maintainer publishes. Direct downloads (the Mac disk
+image, the Windows installer, the Linux AppImage) check that page for a newer
+version when Ansy starts and update themselves; the Microsoft Store and the
+`.deb` are updated through their own channels. The whole procedure, including
+the secrets the Mac signing and the Store package need, is in
+[`docs/release.md`](docs/release.md).
+
 ```
 src/
   main/      Electron main process: window, site view, settings, menu, security
   preload/   the typed bridge between the main process and the interface
   renderer/  the interface (React)
   shared/    code both sides use: the string tables, settings, address parsing,
-             the reader's reading order and words
-resources/   the app icon and the practice shop (also what the tests browse)
+             the reader's reading order and words, the update status
+resources/   the app icon, the practice shop (also what the tests browse) and
+             the Mac entitlements
+docs/        how to cut a release
 tests/
   unit/      Vitest
   e2e/       Playwright, launching the built app
@@ -97,6 +113,27 @@ tests/
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for conventions and
 [`AGENTS.md`](AGENTS.md) for the rules every change follows.
+
+## Code signing policy
+
+Releases are built by GitHub Actions on GitHub's own runners, from the tagged
+commit, through [`.github/workflows/release.yml`](.github/workflows/release.yml).
+
+- macOS builds are signed with Slikk.Dev's Apple Developer ID and notarized by
+  Apple.
+- Windows installers are to be signed through
+  [SignPath Foundation](https://signpath.org/) (free code signing provided by
+  [SignPath.io](https://signpath.io/), certificate by SignPath Foundation)
+  once the project is accepted. Until then they are unsigned and Windows shows
+  a SmartScreen warning. The Microsoft Store package is signed by the Store.
+- Committers and reviewers: the
+  [Slikk.Dev maintainers](https://github.com/orgs/SlikkDev/people). Approvers:
+  the repository owner.
+- Privacy: the program does not transfer any information to other networked
+  systems unless the user asks for it, by opening a website in it, by clicking
+  a link, or by leaving the update check on (one request to GitHub Releases for
+  the newest version, carrying nothing about the user). The full list is in
+  [`PRIVACY.md`](PRIVACY.md).
 
 ## The website
 

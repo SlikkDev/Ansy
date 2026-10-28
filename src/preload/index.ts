@@ -13,6 +13,7 @@ import {
   type UiCommand,
 } from '../shared/ipc'
 import type { ReaderCommand, ReaderEvent } from '../shared/reader'
+import type { UpdateStatus } from '../shared/update'
 
 /** Read once, before the first paint, so the language and theme never flash. */
 const initial = ipcRenderer.sendSync(channels.appInitial) as InitialState
@@ -98,6 +99,15 @@ export const ansy = {
   ui: {
     onCommand: (callback: (command: UiCommand) => void): (() => void) =>
       subscribe(channels.uiCommand, callback),
+  },
+  updates: {
+    status: (): Promise<UpdateStatus> => ipcRenderer.invoke(channels.updateStatus),
+    /** Asks GitHub Releases for a newer version; what happens next arrives through onStatus. */
+    check: (): Promise<void> => ipcRenderer.invoke(channels.updateCheck),
+    /** Quits and installs the downloaded version. */
+    install: (): Promise<void> => ipcRenderer.invoke(channels.updateInstall),
+    onStatus: (callback: (status: UpdateStatus) => void): (() => void) =>
+      subscribe(channels.updateStatus, callback),
   },
 }
 

@@ -29,7 +29,8 @@ code, made by its developer.
   the in-page helper, never through code that the site could reach.
 - **No accounts, no tracking, no analytics.** The only network traffic is the
   site the owner opens and the optional update check against GitHub Releases.
-  Nothing leaves the computer unless the owner exports a report.
+  Nothing leaves the computer unless the owner exports a report. `PRIVACY.md`
+  lists every request; a change that adds one changes that file too.
 - **Two languages, one layout.** Every user-facing string lives in
   `src/shared/i18n/` in English _and_ Hebrew. Hebrew is written in Hebrew,
   never translated from the English. Layout uses logical CSS properties
@@ -57,7 +58,8 @@ src/
              (observe, keyboard trail, axe scan, highlight, check again) shipped as
              source text, Ansy Reader's engine (the accessibility tree over the
              DevTools protocol, the virtual cursor, the keys), the practice shop
-             served at ansy://shop/, the findings store and the PDF/text report
+             served at ansy://shop/, the findings store, the PDF/text report and
+             the self-updater (electron-updater against GitHub Releases)
   preload/   contextBridge API for Ansy's own screens (sandboxed; no Node)
   renderer/  Ansy's screens: React 19 + Tailwind 4, strict TypeScript
   shared/    types, the experience and task tables, the findings model, the report
@@ -68,7 +70,9 @@ tests/
   e2e/       Playwright driving the real Electron app
   fixtures/  accessibility trees captured from the practice shop, for the reader
 resources/   app icon, the practice shop (resources/practice-shop, which the tests
-             serve over http too) and build resources for electron-builder
+             serve over http too), the Mac entitlements and build resources for
+             electron-builder
+docs/        release.md: how a release is cut, and what the signing needs
 site/        the project website (GitHub Pages); separate from the app
 ```
 
@@ -80,6 +84,7 @@ site/        the project website (GitHub Pages); separate from the app
 - `npm test` — unit tests; `npm run test:e2e` — Playwright against the built app
   (on a headless Linux box: `xvfb-run -a npm run test:e2e`)
 - `npm run dist` — unsigned installers for this platform into `dist/`
+- a `v*` tag — the release workflow: signed builds on a draft GitHub release
 
 ## Conventions
 

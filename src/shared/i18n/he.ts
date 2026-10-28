@@ -78,6 +78,20 @@ export const he: Record<MessageKey, string> = {
   'about.builtBy': 'נבנה על ידי',
   'about.credit': 'נבנה על ידי Slikk.Dev, פותח את slikk.dev בדפדפן שלכם',
   'about.close': 'סגירה',
+  'about.updates': 'עדכונים',
+  'about.privacy': 'הצהרת הפרטיות',
+
+  'update.checkNow': 'בדיקה עכשיו',
+  'update.checking': 'אָנְסִי בודק…',
+  'update.none': 'אָנְסִי {version} מעודכן.',
+  'update.downloading': 'אָנְסִי {version} בהורדה… {percent}%',
+  'update.ready': 'אָנְסִי {version} מוכן. הפעילו מחדש כדי לעדכן.',
+  'update.restart': 'הפעלה מחדש',
+  'update.later': 'אחר כך',
+  'update.error': 'לא הצלחנו לבדוק אם יש עדכון. נסו שוב מאוחר יותר.',
+  'update.unsupported': 'הגרסה הזאת מתעדכנת דרך החנות או מנהל החבילות שממנו הותקנה.',
+  'update.privacy':
+    'בדיקת העדכון שואלת את GitHub Releases מהי הגרסה האחרונה, ולא שולחת דבר עליכם או על האתרים שלכם.',
 
   'menu.file': 'קובץ',
   'menu.edit': 'עריכה',
@@ -95,6 +109,7 @@ export const he: Record<MessageKey, string> = {
   'menu.minimize': 'מזעור',
   'menu.close': 'סגירת החלון',
   'menu.about': 'אודות אָנְסִי',
+  'menu.checkUpdates': 'בדיקת עדכונים…',
   'menu.github': 'אָנְסִי ב־GitHub',
   'menu.website': 'האתר של אָנְסִי',
   'panel.on': 'פעיל',

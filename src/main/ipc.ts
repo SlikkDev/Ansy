@@ -23,11 +23,13 @@ import { isAllowedExternal } from './links'
 import { exportFindings } from './report'
 import { retestFinding } from './retest'
 import type { SettingsStore } from './settings'
+import type { Updater } from './updater'
 import type { MainWindow } from './window'
 
 interface Deps {
   settings: SettingsStore
   findings: FindingsStore
+  updater: Updater
   getWindow: () => MainWindow | null
   isDev: boolean
 }
@@ -47,7 +49,7 @@ function isBounds(value: unknown): value is Bounds {
 }
 
 /** Every channel Ansy's screens can call. Inputs are validated; the site view is never handed raw input. */
-export function registerIpc({ settings, findings, getWindow, isDev }: Deps): void {
+export function registerIpc({ settings, findings, updater, getWindow, isDev }: Deps): void {
   const locale = (): Locale => resolveLocale(settings.get().locale, app.getLocale())
 
   // Synchronous on purpose: the preload needs locale and theme before the first paint.
@@ -83,6 +85,14 @@ export function registerIpc({ settings, findings, getWindow, isDev }: Deps): voi
     if (!win || event.sender !== win.window.webContents) return null
     return win.site
   }
+
+  ipcMain.handle(channels.updateStatus, () => updater.get())
+  ipcMain.handle(channels.updateCheck, (event) => {
+    if (site(event)) updater.check()
+  })
+  ipcMain.handle(channels.updateInstall, (event) => {
+    if (site(event)) updater.install()
+  })
 
   ipcMain.handle(channels.siteNavigate, (event, input: unknown) => {
     const url = typeof input === 'string' ? normalizeAddress(input) : null
