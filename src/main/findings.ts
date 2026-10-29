@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { isFinding, type Finding, type FindingDraft, type FindingPatch } from '../shared/findings'
+import { sanitizeSteps, type KeyStep } from '../shared/replay'
 
 /**
  * The findings on disk: a JSON list in the app's data folder, and one PNG per
@@ -31,7 +32,7 @@ export class FindingsStore {
     return found ? { ...found } : null
   }
 
-  add(draft: FindingDraft, png: Buffer | null): Finding {
+  add(draft: FindingDraft, png: Buffer | null, steps: KeyStep[] | null = null): Finding {
     const id = randomUUID()
     let screenshot = false
     if (draft.screenshot && png) {
@@ -44,7 +45,7 @@ export class FindingsStore {
       }
     }
     const { screenshot: _wanted, ...rest } = draft
-    const finding: Finding = { ...rest, id, at: Date.now(), screenshot, retest: null }
+    const finding: Finding = { ...rest, id, at: Date.now(), screenshot, retest: null, steps }
     this.items = [finding, ...this.items]
     this.write()
     return { ...finding }
@@ -90,7 +91,9 @@ export class FindingsStore {
   private read(): Finding[] {
     try {
       const raw: unknown = JSON.parse(readFileSync(this.file, 'utf8'))
-      return Array.isArray(raw) ? raw.filter(isFinding) : []
+      return Array.isArray(raw)
+        ? raw.filter(isFinding).map((f) => ({ ...f, steps: sanitizeSteps(f.steps) }))
+        : []
     } catch {
       return []
     }

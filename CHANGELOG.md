@@ -54,6 +54,17 @@ All notable changes to Ansy are recorded here. The format follows
 - The practice shop has a label that the reading aids cut off, a paragraph of
   legal words, and a flashing sale banner on a page of its own, which plays
   only when asked and stops after three seconds.
+- Replayed re-tests: a keyboard trap, a hidden focus or an Ansy Reader finding
+  keeps the keys that led to it, and Check again presses them again on the
+  reopened page. A trap or a hidden focus comes back fixed or still there by
+  itself; when the keys no longer reach the element, Ansy says it can't tell
+  and asks the owner. The keys are shown on the finding and in reports, as
+  steps whoever fixes it can follow. Typed text is never kept.
+
+### Changed
+
+- Check again keeps the focus on its button while the page is checked, and
+  hands it back after a replay.
 
 ### Fixed
 

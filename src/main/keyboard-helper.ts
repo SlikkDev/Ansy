@@ -7,10 +7,16 @@ import type { KeyboardFinding, KeyboardReport } from '../shared/keyboard'
  * self-contained: no imports, nothing from outside its own body.
  *
  * It installs once per page and leaves an API on the isolated window:
- *   __ansyKeyboard.report() → KeyboardReport, .reset(), .uninstall()
+ *   __ansyKeyboard.report() → KeyboardReport, .reset(), .uninstall(),
+ *   .reached(selector) → whether the keyboard has landed on it since the last reset
  */
 export function keyboardHelper(): KeyboardReport {
-  type Api = { report(): KeyboardReport; reset(): void; uninstall(): void }
+  type Api = {
+    report(): KeyboardReport
+    reset(): void
+    uninstall(): void
+    reached(selector: string): boolean
+  }
   const g = globalThis as unknown as { __ansyKeyboard?: Api }
   if (g.__ansyKeyboard) return g.__ansyKeyboard.report()
 
@@ -116,6 +122,8 @@ export function keyboardHelper(): KeyboardReport {
   const invisible: KeyboardFinding[] = []
   const seenInvisible = new Set<Element>()
   const seenTrap = new Set<Element>()
+  // Where the keyboard has landed, for a replayed re-test to ask after.
+  let visited = new WeakSet<Element>()
 
   const add = (list: KeyboardFinding[], seen: Set<Element>, el: Element) => {
     if (seen.has(el) || list.length >= MAX_FINDINGS) return
@@ -167,6 +175,7 @@ export function keyboardHelper(): KeyboardReport {
     if (!el || !(el instanceof Element) || overlay.contains(el)) return
     if (el !== current) {
       if (byKey()) {
+        visited.add(el)
         stops += 1
         addMarker(el, stops)
       }
@@ -266,10 +275,19 @@ export function keyboardHelper(): KeyboardReport {
       invisible.length = 0
       seenInvisible.clear()
       seenTrap.clear()
+      visited = new WeakSet()
       for (const { marker } of trail) marker.remove()
       trail.length = 0
       misses = 0
       place()
+    },
+    reached(selector) {
+      try {
+        const el = document.querySelector(selector)
+        return !!el && visited.has(el)
+      } catch {
+        return false
+      }
     },
     uninstall() {
       document.removeEventListener('focusin', onFocusIn, true)
@@ -293,6 +311,8 @@ export const keyboardReportSource =
   'globalThis.__ansyKeyboard ? globalThis.__ansyKeyboard.report() : null'
 export const keyboardResetSource =
   'globalThis.__ansyKeyboard ? globalThis.__ansyKeyboard.reset() : null'
+export const keyboardReachedSource = (selector: string): string =>
+  `globalThis.__ansyKeyboard ? globalThis.__ansyKeyboard.reached(${JSON.stringify(selector)}) : null`
 export const keyboardUninstallSource =
   'globalThis.__ansyKeyboard ? globalThis.__ansyKeyboard.uninstall() : null'
 

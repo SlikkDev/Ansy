@@ -38,7 +38,10 @@ app itself, and the built-in practice shop is served from the app's own files.
   app's data folder, as `settings.json`.
 - **Findings**: the page address, the element, the screenshot, the rule, your
   note and the check-again result, in the same folder, as `findings.json` and
-  one PNG per screenshot. Nothing in them leaves the computer unless you
+  one PNG per screenshot. A keyboard or reader finding also keeps the keys
+  pressed on the page before it was saved (Tab, Enter, the arrows, the
+  reader's letter keys), so Check again can press them again; the letters you
+  type into a page are never kept. Nothing in them leaves the computer unless you
   export a report and send it.
 - **The site's own cookies and storage**, in a session of their own, like a
   browser profile. They never reach Ansy's screens.

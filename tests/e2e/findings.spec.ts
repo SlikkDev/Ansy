@@ -93,7 +93,11 @@ test('a finding made during a keyboard-only task reaches a PDF', async () => {
     screenshot: true,
     rule: { id: 'keyboard-trap', wcag: ['2.1.2'] },
     element: { target: '#trap' },
+    // The keys that led there, for "Check again" to press again.
+    steps: Array.from({ length: 9 }, () => ({ code: 'Tab' })),
   })
+  await expect(first).toContainText('Keys to get there')
+  await expect(first).toContainText('Open the page, then press: \u2066Tab ×9\u2069.')
   const png = await readFile(join(h.userData, 'findings', `${list[0]!.id}.png`))
   expect(png.subarray(1, 4).toString()).toBe('PNG')
 
@@ -127,6 +131,7 @@ test('a finding made during a keyboard-only task reaches a PDF', async () => {
   expect(text).toContain('Finding 1 of 2: The phone number is an image, so I could not copy it.')
   expect(text).toContain('Finding 2 of 2: Tab gets stuck here')
   expect(text).toContain('Task: Fill in a form')
+  expect(text).toContain('Keys to get there:\nOpen the page, then press: \u2066Tab ×9\u2069.')
   expect(text).toContain('It cannot certify that your site meets WCAG')
   expect(text).toContain('Ask Slikk.Dev to fix this: https://slikk.dev/')
 
@@ -178,12 +183,34 @@ test('check again reopens the page and tells fixed from still there', async () =
     by: 'ansy',
   })
 
-  // A trap is for the owner to judge: Ansy reopens the page and asks.
+  // A trap is replayed: Ansy reopens the page, presses Tab nine times again, and Tab sticks.
   const trap = findings().filter({ hasText: 'Tab gets stuck here' })
   await trap.getByRole('button', { name: 'Check again' }).click()
-  await expect(trap.getByText('Ansy couldn’t tell')).toBeVisible({ timeout: 30_000 })
+  await expect(trap.locator('.badge', { hasText: 'Still there' })).toBeVisible({ timeout: 30_000 })
   // The experience came back on in the (hidden) Experiences tab, so the owner can look.
   await expect(h.page.locator('[role="status"]')).toHaveText('Keyboard only is on')
+  // Focus came back to the button pressed, not left in the site.
+  await expect(trap.getByRole('button', { name: 'Check again' })).toBeFocused()
+  expect((await stored()).find((f) => f.kind === 'keyboard')?.retest).toMatchObject({
+    outcome: 'failing',
+    by: 'ansy',
+  })
+
+  // Fixed: the widget lets Tab go now, so the same keys walk past it.
+  h.serve('index.html', page.replace("if (event.key === 'Tab') event.preventDefault()", ''))
+  await trap.getByRole('button', { name: 'Check again' }).click()
+  await expect(trap.locator('.badge', { hasText: 'Fixed' })).toBeVisible({ timeout: 30_000 })
+  h.serve('index.html', null)
+  expect((await stored()).find((f) => f.kind === 'keyboard')?.retest).toMatchObject({
+    outcome: 'fixed',
+    by: 'ansy',
+  })
+
+  // Gone: the widget was taken out, so the keys never reach it, and the owner judges.
+  h.serve('index.html', page.replace('<div id="trap" tabindex="0">', '<div id="gone">'))
+  await trap.getByRole('button', { name: 'Check again' }).click()
+  await expect(trap.getByText('Ansy couldn’t tell')).toBeVisible({ timeout: 30_000 })
+  h.serve('index.html', null)
   await trap.getByRole('button', { name: 'Still there' }).click()
   await expect(trap.locator('.badge', { hasText: 'Still there' })).toBeVisible()
   expect((await stored()).find((f) => f.kind === 'keyboard')?.retest).toMatchObject({

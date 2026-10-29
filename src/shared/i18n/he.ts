@@ -593,6 +593,8 @@ export const he: Record<MessageKey, string> = {
   'findings.screenshot': 'צילום מסך',
   'findings.screenshotAlt': 'צילום מסך של {title}, עם האלמנט מוקף',
   'findings.screenshotShow': 'הצגת צילום המסך',
+  'findings.steps': 'המקשים שמביאים לשם',
+  'findings.stepsBody': 'פותחים את העמוד ולוחצים: {keys}.',
   'findings.retest': 'בדיקה חוזרת',
   'findings.retesting': 'פותח את העמוד ובודק…',
   'findings.retest.fixed': 'תוקן',

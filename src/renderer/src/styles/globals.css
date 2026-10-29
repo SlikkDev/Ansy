@@ -232,6 +232,10 @@
   .btn-link:hover {
     text-decoration-thickness: 2px;
   }
+  .btn-link[aria-disabled='true'] {
+    cursor: default;
+    color: var(--ink-soft);
+  }
 
   .field {
     min-height: 2.5rem;

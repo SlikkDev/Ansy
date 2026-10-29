@@ -8,6 +8,7 @@
 import { experienceIds, type ExperienceId } from './experiences'
 import type { Impact } from './scan'
 import { impacts } from './scan'
+import type { KeyStep } from './replay'
 import { isTaskId, type TaskId } from './tasks'
 
 /** axe's impact for what the scan found; "owner" for what the owner met while using the site. */
@@ -65,6 +66,12 @@ export interface Finding extends Omit<FindingDraft, 'screenshot'> {
   /** A PNG of the page, with the element ringed, is stored beside the list. */
   screenshot: boolean
   retest: Retest | null
+  /**
+   * The keys pressed on the page before it was saved, for a keyboard or reader
+   * finding, so "Check again" can press them again. Missing on findings saved
+   * before 2.0, and null when the walk was too long to keep.
+   */
+  steps?: KeyStep[] | null
 }
 
 /** Findings are grouped by site: the page's host, which is what a report is about. */
@@ -209,6 +216,19 @@ export const pageRules = {
   string,
   { id: string; wcag: string[]; level: 'A' | 'AA' | 'AAA'; severity: Impact }
 >
+
+/**
+ * The findings "Check again" can replay: a keyboard trap or a hidden focus
+ * (each found by walking there), and anything Ansy Reader found.
+ */
+export function replays(finding: Pick<FindingDraft, 'kind' | 'rule'>): boolean {
+  if (finding.kind === 'reader') return true
+  const id = finding.rule?.id
+  return (
+    finding.kind === 'keyboard' &&
+    (id === keyboardRules.traps.id || id === keyboardRules.invisibleFocus.id)
+  )
+}
 
 export type KeyboardRuleGroup = keyof typeof keyboardRules
 export type KeyboardRuleId = (typeof keyboardRules)[KeyboardRuleGroup]['id']

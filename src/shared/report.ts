@@ -12,6 +12,7 @@ import {
   type FindingRule,
 } from './findings'
 import type { Locale, MessageKey } from './i18n'
+import { stepsSummary } from './replay'
 import { isExplainedRule } from './scan'
 
 export type Translate = (key: MessageKey, vars?: Record<string, string | number>) => string
@@ -63,6 +64,15 @@ export function wcagLabel(rule: FindingRule, t: Translate): string {
   return rule.level
     ? t('exp.scan.wcag', { sc, level: rule.level })
     : t('exp.scan.wcagNoLevel', { sc })
+}
+
+/**
+ * The keys that lead to a finding, written out for whoever fixes it. The keys
+ * are set apart from the sentence around them, so a Hebrew line keeps their order.
+ */
+export function stepsLabel(finding: Finding, t: Translate): string | null {
+  if (!finding.steps?.length) return null
+  return t('findings.stepsBody', { keys: `\u2066${stepsSummary(finding.steps)}\u2069` })
 }
 
 export function retestLabel(finding: Finding, t: Translate, locale: Locale): string | null {
@@ -119,6 +129,8 @@ export function plainTextReport(findings: readonly Finding[], options: ReportOpt
       push('', `${t('findings.element')}:`, `  ${finding.element.target}`)
       if (finding.element.html) push(`  ${finding.element.html}`)
     }
+    const steps = stepsLabel(finding, t)
+    if (steps) push('', `${t('findings.steps')}:`, steps)
     const retest = retestLabel(finding, t, locale)
     if (retest) push('', retest)
     push('')
@@ -251,6 +263,8 @@ export function htmlReport(findings: readonly Finding[], options: HtmlReportOpti
       if (finding.element.html)
         lines.push(`<code class="code ltr">${esc(finding.element.html)}</code>`)
     }
+    const steps = stepsLabel(finding, t)
+    if (steps) lines.push(`<h3>${esc(t('findings.steps'))}</h3><p>${esc(steps)}</p>`)
     const src = finding.screenshot ? options.screenshotSrc(finding) : null
     if (src) {
       lines.push(`<h3>${esc(t('findings.screenshot'))}</h3>`)

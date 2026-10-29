@@ -65,7 +65,8 @@ src/
   renderer/  Ansy's screens: React 19 + Tailwind 4, strict TypeScript
   shared/    types, the experience and task tables, the findings model, the report
              builders, the reader's pure parts (reading order, findings, speech),
-             the voice command parser, the reading score and the flash counter
+             the voice command parser, the reading score and the flash counter,
+             the key trail that replayed re-tests press again
              and the i18n string tables, used by main and renderer
 tests/
   unit/      Vitest

@@ -24,6 +24,7 @@ import {
   type ReaderSnapshot,
   type ReaderTarget,
 } from '../shared/reader'
+import { readerTargetKeys } from '../shared/replay'
 import { ringFunction } from './highlight'
 import { selectorFunction } from './selector'
 
@@ -40,17 +41,6 @@ const HTML_MAX = 300
 const OBJECTS = 'ansy-reader'
 
 /** The quick keys, by physical key, so a Hebrew layout works the same as an English one. */
-const TARGET_KEYS: Record<string, ReaderTarget> = {
-  KeyH: 'heading',
-  KeyK: 'link',
-  KeyB: 'button',
-  KeyF: 'field',
-  KeyE: 'edit',
-  KeyL: 'list',
-  KeyG: 'image',
-  KeyD: 'landmark',
-  KeyT: 'table',
-}
 
 const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 
@@ -184,7 +174,7 @@ export class Reader {
     if (code === 'Enter' || code === 'NumpadEnter' || code === 'Space') {
       return this.enqueue(() => this.activate())
     }
-    const target = TARGET_KEYS[code]
+    const target = readerTargetKeys[code]
     if (target) return this.enqueue(() => this.move(target, dir))
     const digit = /^Digit([1-6])$/.exec(code)
     if (digit) return this.enqueue(() => this.move('heading', dir, Number(digit[1])))
