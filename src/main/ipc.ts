@@ -123,7 +123,7 @@ export function registerIpc({ settings, findings, updater, getWindow, isDev }: D
     if (typeof target !== 'string' || !target || target.length > 2000) return false
     return site(event)?.experiences.show(target) ?? false
   })
-  ipcMain.handle(channels.expKeyboardReset, (event) => site(event)?.experiences.resetKeyboard())
+  ipcMain.handle(channels.expKeyboardReset, (event) => site(event)?.experiences.resetCounting())
 
   ipcMain.handle(channels.readerCommand, (event, command: unknown) => {
     if (isReaderCommand(command)) return site(event)?.experiences.readerCommand(command)

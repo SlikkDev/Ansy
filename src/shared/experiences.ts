@@ -5,6 +5,7 @@
  */
 
 import type { KeyboardReport } from './keyboard'
+import { switchSpeeds, type SwitchReport, type SwitchSpeed, type TremorReport } from './motor'
 import type { ReaderReport } from './reader'
 import type { ScanResult } from './scan'
 
@@ -19,6 +20,8 @@ export type ExperienceId =
   | 'highContrast'
   | 'darkMode'
   | 'keyboard'
+  | 'tremor'
+  | 'switchAccess'
   | 'noSound'
   | 'motion'
   | 'scan'
@@ -60,6 +63,8 @@ export const experiences: readonly ExperienceInfo[] = [
   { id: 'highContrast', area: 'lowVision', fidelity: 'high', available: true },
   { id: 'darkMode', area: 'lowVision', fidelity: 'high', available: true },
   { id: 'keyboard', area: 'motor', fidelity: 'high', available: true },
+  { id: 'tremor', area: 'motor', fidelity: 'low', available: true },
+  { id: 'switchAccess', area: 'motor', fidelity: 'medium', available: true },
   { id: 'noSound', area: 'hearing', fidelity: 'medium', available: true },
   { id: 'motion', area: 'cognitive', fidelity: 'high', available: true },
   { id: 'scan', area: 'check', fidelity: 'high', available: true },
@@ -120,6 +125,8 @@ export interface ExperienceState {
   darkForce: boolean
   /** Keyboard only: take the mouse away as well as drawing the trail. */
   mouseOff: boolean
+  /** Switch access: how long the highlight rests on each control. */
+  switchSpeed: SwitchSpeed
   /** Ansy Reader: say it aloud, not only in the transcript. */
   readerVoice: boolean
   readerRate: ReaderRate
@@ -139,6 +146,7 @@ export const defaultExperienceState: ExperienceState = {
   textSpacing: true,
   darkForce: false,
   mouseOff: true,
+  switchSpeed: 'normal',
   readerVoice: true,
   readerRate: 'normal',
   readerCover: false,
@@ -166,6 +174,10 @@ export interface ExperienceReport {
   observations: Observations | null
   /** What the keyboard helper has seen so far, while keyboard only runs. */
   keyboard: KeyboardReport | null
+  /** Switch access: where scanning has got to and what it skips, while it runs. */
+  switchAccess: SwitchReport | null
+  /** Tremor: clicks made and those the shake carried elsewhere, while it runs. */
+  tremor: TremorReport | null
   /** The last automatic scan of the current page, while the scan runs. */
   scan: ScanResult | null
   /** A scan is due or under way. */
@@ -200,6 +212,12 @@ export interface SiteSwitches {
   mouseOff: boolean
   /** The automatic scan, run on each page. */
   scan: boolean
+  /** Only these axe rules, or every rule when null. */
+  scanRules: string[] | null
+  /** Switch access: step scanning, picked with Space. */
+  switchAccess: SwitchSpeed | null
+  /** A shaking pointer in place of the real one. */
+  tremor: boolean
   /** Ansy Reader: the accessibility tree read aloud, keys taken from the site. */
   reader: boolean
   /** The site painted black. */
@@ -221,6 +239,9 @@ export function switchesFor(state: ExperienceState): SiteSwitches {
     keyboard: false,
     mouseOff: false,
     scan: false,
+    scanRules: null,
+    switchAccess: null,
+    tremor: false,
     reader: false,
     cover: false,
   }
@@ -258,6 +279,11 @@ export function switchesFor(state: ExperienceState): SiteSwitches {
       }
     case 'keyboard':
       return { ...off, keyboard: true, mouseOff: state.mouseOff }
+    case 'tremor':
+      // The shake is an impression; the 24-pixel check beside it is exact.
+      return { ...off, tremor: true, scan: true, scanRules: ['target-size'] }
+    case 'switchAccess':
+      return { ...off, switchAccess: state.switchSpeed }
     case 'motion':
       return {
         ...off,
@@ -330,6 +356,12 @@ export function sanitizeExperiencePatch(current: ExperienceState, raw: unknown):
   if (typeof r.textSpacing === 'boolean') next.textSpacing = r.textSpacing
   if (typeof r.darkForce === 'boolean') next.darkForce = r.darkForce
   if (typeof r.mouseOff === 'boolean') next.mouseOff = r.mouseOff
+  if (
+    typeof r.switchSpeed === 'string' &&
+    (switchSpeeds as readonly string[]).includes(r.switchSpeed)
+  ) {
+    next.switchSpeed = r.switchSpeed as SwitchSpeed
+  }
   if (typeof r.readerVoice === 'boolean') next.readerVoice = r.readerVoice
   if (
     typeof r.readerRate === 'string' &&

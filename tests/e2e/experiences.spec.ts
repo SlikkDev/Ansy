@@ -267,6 +267,91 @@ test('dark mode asks for a dark theme, and can darken a site that has none', asy
     .toBe(false)
 })
 
+/** Sends real input to the site view, the way a person's mouse or key would. */
+const sendToSite = (events: Electron.InputEvent[] | object[]) =>
+  app.evaluate(async ({ BrowserWindow }, events) => {
+    const [win] = BrowserWindow.getAllWindows()
+    const view = win?.contentView.children[0] as Electron.WebContentsView | undefined
+    if (!view) throw new Error('no site view')
+    view.webContents.focus()
+    for (const event of events) {
+      view.webContents.sendInputEvent(event as Electron.MouseInputEvent)
+      await new Promise((resolve) => setTimeout(resolve, 60))
+    }
+  }, events)
+
+test('tremor shakes the pointer and checks the size of what there is to hit', async () => {
+  await card('Tremor and unsteady hands').click()
+  await expect(page.getByText('A rough impression', { exact: true })).toBeVisible()
+  await turnOn().click()
+  // The scan runs the target-size rule alone, and the shop's tiny quantity buttons fail it.
+  await expect(page.locator('[data-rule="target-size"]')).toBeVisible({ timeout: 20_000 })
+  await expect(page.locator('[data-rule="image-alt"]')).toHaveCount(0)
+  await expect(page.getByText('Click around the site and see where the clicks land.')).toBeVisible()
+  await noViolations('tremor card')
+
+  await sendToSite([
+    { type: 'mouseMove', x: 200, y: 30 },
+    { type: 'mouseDown', x: 200, y: 30, button: 'left', clickCount: 1 },
+    { type: 'mouseUp', x: 200, y: 30, button: 'left', clickCount: 1 },
+  ])
+  await expect
+    .poll(() =>
+      inSite<string>('getComputedStyle(document.querySelector("[data-ansy-tremor]")).display'),
+    )
+    .toBe('block')
+  expect(await inSite<string>('getComputedStyle(document.body).cursor')).toBe('none')
+  await expect(page.getByText(/^Clicks: 1\. Landed somewhere else: [01]\.$/)).toBeVisible()
+
+  await turnOff().click()
+  await expect
+    .poll(() => inSite<boolean>('!!document.querySelector("[data-ansy-tremor]")'))
+    .toBe(false)
+  expect(await inSite<string>('getComputedStyle(document.body).cursor')).not.toBe('none')
+})
+
+test('switch access scans the controls one by one and picks with Space', async () => {
+  await card('Switch access').click()
+  await turnOn().click()
+  await page.getByRole('radio', { name: /Fast/ }).check()
+  await expect(page.getByText('Clickable, but the scan never lands on it')).toBeVisible({
+    timeout: 10_000,
+  })
+  await expect(page.getByText('div “Add to wishlist”')).toBeVisible()
+  await noViolations('switch access card')
+
+  // Wait for the highlight to rest on the email field, then press the switch.
+  const ringOnEmail = `(() => {
+    const ring = document.querySelector('[data-ansy-switch] > div')
+    const field = document.querySelector('input[name=email]').getBoundingClientRect()
+    if (!ring || ring.style.display !== 'block') return false
+    const box = ring.getBoundingClientRect()
+    return Math.abs(box.left - (field.left - 5)) < 2 && Math.abs(box.top - (field.top - 5)) < 2
+  })()`
+  await expect.poll(() => inSite<boolean>(ringOnEmail), { intervals: [100] }).toBe(true)
+  await sendToSite([
+    { type: 'keyDown', keyCode: 'Space' },
+    { type: 'keyUp', keyCode: 'Space' },
+  ])
+  await expect.poll(() => inSite<string>('document.activeElement.name')).toBe('email')
+  await expect(page.getByText(/^Moves so far: \d+\. Picks: 1\.$/)).toBeVisible()
+  await expect(page.getByText(/^Moves to reach the last pick: \d+$/)).toBeVisible()
+
+  // Escape hands control back from the field, and the scan moves on.
+  await sendToSite([
+    { type: 'keyDown', keyCode: 'Escape' },
+    { type: 'keyUp', keyCode: 'Escape' },
+  ])
+  await expect.poll(() => inSite<string>('document.activeElement.tagName')).toBe('BODY')
+
+  await page.getByRole('button', { name: 'Start counting again' }).click()
+  await expect(page.getByText(/^Moves so far: \d+\. Picks: 0\.$/)).toBeVisible()
+  await turnOff().click()
+  await expect
+    .poll(() => inSite<boolean>('!!document.querySelector("[data-ansy-switch]")'))
+    .toBe(false)
+})
+
 test('the cards read in Hebrew too', async () => {
   await page.getByRole('button', { name: 'עברית' }).click()
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')

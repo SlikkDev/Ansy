@@ -18,7 +18,8 @@ import {
 import type { MessageKey } from '../../../shared/i18n'
 import type { SiteState } from '../../../shared/ipc'
 import { useT, type T } from '../lib/i18n'
-import { KeyboardFindings, ScanResults } from './Findings'
+import { switchSpeeds } from '../../../shared/motor'
+import { KeyboardFindings, ScanResults, SwitchFindings } from './Findings'
 import { ReaderCard } from './ReaderCard'
 
 interface Props {
@@ -249,7 +250,28 @@ function ExperienceCard({
         </>
       )}
 
-      {isActive && isScan && report && (
+      {isActive && id === 'switchAccess' && report?.switchAccess && (
+        <>
+          <p className="text-ink-soft">{t('exp.switchAccess.hint')}</p>
+          <SwitchFindings report={report.switchAccess} onClear={onClearTrail} />
+        </>
+      )}
+
+      {isActive && id === 'tremor' && report?.tremor && (
+        <section aria-live="polite">
+          <h4 className={heading}>{t('panel.noticed')}</h4>
+          <p>
+            {report.tremor.clicks
+              ? t('exp.tremor.clicks', {
+                  clicks: report.tremor.clicks,
+                  misses: report.tremor.misses,
+                })
+              : t('exp.tremor.noClicks')}
+          </p>
+        </section>
+      )}
+
+      {isActive && (isScan || id === 'tremor') && report && (
         <ScanResults scan={report.scan} scanning={report.scanning} />
       )}
 
@@ -401,6 +423,23 @@ function Options({
             />
             {t('exp.largeText.spacing')}
           </label>
+        </fieldset>
+      )
+    case 'switchAccess':
+      return (
+        <fieldset>
+          <legend className={heading}>{t('exp.switchAccess.speed')}</legend>
+          {switchSpeeds.map((speed) => (
+            <label key={speed} className="flex items-center gap-2 py-0.5">
+              <input
+                type="radio"
+                name={group}
+                checked={state.switchSpeed === speed}
+                onChange={() => onChange({ switchSpeed: speed })}
+              />
+              {t(`exp.switchAccess.speed.${speed}` as MessageKey)}
+            </label>
+          ))}
         </fieldset>
       )
     case 'keyboard':

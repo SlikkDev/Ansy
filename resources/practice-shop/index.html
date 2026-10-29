@@ -24,6 +24,19 @@
       .status.out {
         color: #c62828;
       }
+      /* Too small for a shaking hand, and touching. */
+      .step {
+        width: 16px;
+        height: 16px;
+        padding: 0;
+        margin: 0;
+        border: 1px solid #222;
+        color: #222;
+        background: #fff;
+        font-size: 11px;
+        line-height: 1;
+        vertical-align: middle;
+      }
       .legal {
         color: #aaa;
         font-size: 11px;
@@ -84,6 +97,30 @@
         if (event.key === 'Tab') event.preventDefault()
       })
     </script>
+    <!-- Tiny and touching, after the trap so the keyboard trail stays the same: the scan's
+         "target-size" rule. On a row of their own, since WCAG excuses targets inside a sentence. -->
+    <p>Mugs in the basket: <output id="qty">1</output></p>
+    <div>
+      <button
+        class="step"
+        type="button"
+        aria-label="One less"
+        onclick="qty.value = Math.max(1, +qty.value - 1)"
+      >
+        <svg viewBox="0 0 10 10" width="8" height="8" aria-hidden="true">
+          <path d="M1 5h8" stroke="#222" stroke-width="2" />
+        </svg></button
+      ><button
+        class="step"
+        type="button"
+        aria-label="One more"
+        onclick="qty.value = +qty.value + 1"
+      >
+        <svg viewBox="0 0 10 10" width="8" height="8" aria-hidden="true">
+          <path d="M1 5h8M5 1v8" stroke="#222" stroke-width="2" />
+        </svg>
+      </button>
+    </div>
     <!-- Media the no-sound and motion experiences look at. Neither has a real source. -->
     <video id="promo" autoplay muted loop width="160" height="90" aria-label="Promo video"></video>
     <video id="captioned" width="160" height="90" aria-label="Captioned video">

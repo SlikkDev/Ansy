@@ -55,6 +55,8 @@ export const en = {
   'exp.tunnelVision': 'Tunnel and central vision loss',
   'exp.haze': 'Cataracts and glare',
   'exp.darkMode': 'Dark mode',
+  'exp.tremor': 'Tremor and unsteady hands',
+  'exp.switchAccess': 'Switch access',
 
   'area.vision': 'Sight and blindness',
   'area.lowVision': 'Low vision and light sensitivity',
@@ -383,6 +385,33 @@ export const en = {
   'exp.keyboard.invisible': 'Focus shows nothing here',
   'exp.keyboard.unreachable': 'Clickable, but the keyboard can’t reach it',
   'exp.keyboard.clear': 'Clear the trail',
+
+  'exp.tremor.what':
+    'Ansy swaps your pointer for one that shakes, and a click lands wherever the shake carries it, as it does for people with Parkinson’s, essential tremor or an unsteady hand. It also checks every control for the 24-pixel size WCAG asks for.',
+  'exp.tremor.look':
+    'Small links and buttons that are hard to hit.\nControls packed so close that a miss presses the neighbour.\nCheckboxes and close buttons the size of a letter.',
+  'exp.tremor.fidelity':
+    'The shake is a rough impression; the size check is exact. People with a tremor often use the keyboard or a switch instead, both in this list.',
+  'exp.tremor.clicks': 'Clicks: {clicks}. Landed somewhere else: {misses}.',
+  'exp.tremor.noClicks': 'Click around the site and see where the clicks land.',
+
+  'exp.switchAccess.what':
+    'Ansy lights up each control on the page in turn, and Space picks the one that is lit, the way a single switch works for people who can move only a hand, their head or a foot. Fields take your typing; Escape hands control back to the scan.',
+  'exp.switchAccess.look':
+    'How long it takes to reach checkout, one control at a time.\nClickable things the scan never lands on.\nMenus and pop-ups that close before the scan reaches them.',
+  'exp.switchAccess.fidelity':
+    'Auto-scanning with one switch, as on iPhone and Android. Real setups vary in grouping, speed and the number of switches.',
+  'exp.switchAccess.speed': 'Speed',
+  'exp.switchAccess.speed.slow': 'Slow (2 seconds a step)',
+  'exp.switchAccess.speed.normal': 'Normal (1.3 seconds)',
+  'exp.switchAccess.speed.fast': 'Fast (0.8 seconds)',
+  'exp.switchAccess.hint':
+    'Click into the site first, then press Space when the control you want is lit.',
+  'exp.switchAccess.steps': 'Moves so far: {steps}. Picks: {picks}.',
+  'exp.switchAccess.noSteps': 'The scan starts in a moment.',
+  'exp.switchAccess.lastPick': 'Moves to reach the last pick: {count}',
+  'exp.switchAccess.skipped': 'Clickable, but the scan never lands on it',
+  'exp.switchAccess.clear': 'Start counting again',
 
   'exp.scan.what':
     'Ansy runs axe-core, the checker behind Lighthouse and most accessibility tools, on the page as it is right now, and explains each result in plain words. Automatic checks catch roughly a third of the barriers; the other experiences are for the rest.',

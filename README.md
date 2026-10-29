@@ -31,14 +31,16 @@ off. [`PRIVACY.md`](PRIVACY.md) lists every request the app can make.
 
 Each experience is a task card: what changes, what to look for, and how close
 the simulation is to the real thing. Those that can only give a rough
-impression (tunnel vision, cataracts and glare) say so and name the tool that
+impression (tunnel vision, cataracts and glare, tremor) say so and name the tool that
 person uses instead. The switches that change how the site
 renders (colour vision, forced colours, media preferences, automatic dark mode,
 font size, zoom) are
 the same DevTools commands Chrome itself uses. Small helpers run inside the
 page, in a world the site's scripts cannot see: one counts the animations that
 keep moving and the videos without captions, one draws the keyboard-only focus
-ring and numbered trail and notes what the keyboard cannot do, and one runs
+ring and numbered trail and notes what the keyboard cannot do, one steps
+through the controls as a switch device does, one shakes the pointer for the
+tremor experience, and one runs
 [axe-core](https://github.com/dequelabs/axe-core) for the automatic scan, whose
 results Ansy explains in plain words, in both languages, and maps to their WCAG
 success criteria.
