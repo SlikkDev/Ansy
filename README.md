@@ -12,8 +12,10 @@ Ansy is a testing and empathy tool. It is not an accessibility overlay, it never
 touches your live site, and it is not a compliance certificate.
 
 - Website: https://slikkdev.github.io/Ansy/ (Hebrew: https://slikkdev.github.io/Ansy/he/)
-- Status: version 1.0 is about to ship. Installers for macOS, Windows and Linux
-  will be on [GitHub Releases](https://github.com/SlikkDev/Ansy/releases).
+- Status: version 2.0.0 is available. Download installers for macOS, Windows and
+  Linux from [GitHub Releases](https://github.com/SlikkDev/Ansy/releases/tag/v2.0.0).
+  The macOS and Windows downloads are currently unsigned; see the
+  [installation notes](https://slikkdev.github.io/Ansy/#download).
 
 ## The app
 
@@ -132,12 +134,14 @@ Releases are built by GitHub Actions on GitHub's own runners, from the tagged
 commit, through [`.github/workflows/release.yml`](.github/workflows/release.yml).
 
 - macOS builds are signed with Slikk.Dev's Apple Developer ID and notarized by
-  Apple.
+  Apple when the signing secrets are configured. Version 2.0.0 is unsigned
+  and not notarized; automatic updates are unavailable for this Mac build.
 - Windows installers are to be signed through
   [SignPath Foundation](https://signpath.org/) (free code signing provided by
   [SignPath.io](https://signpath.io/), certificate by SignPath Foundation)
   once the project is accepted. Until then they are unsigned and Windows shows
-  a SmartScreen warning. The Microsoft Store package is signed by the Store.
+  a SmartScreen warning. Microsoft Store distribution is not yet available;
+  the Store signs packages accepted for distribution there.
 - Committers and reviewers: the
   [Slikk.Dev maintainers](https://github.com/orgs/SlikkDev/people). Approvers:
   the repository owner.

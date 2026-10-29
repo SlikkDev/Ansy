@@ -59,13 +59,19 @@ project, so Windows shows a SmartScreen warning ("Windows protected your
 PC"): the user clicks **More info**, then **Run anyway**. The download page
 should say so.
 
-Apply at https://signpath.org/apply after the first release. Their
-conditions, all met by this repository: a public repository built by CI,
-two-factor authentication on the GitHub organization, a code signing policy
-in the README, and a published release. The application should mention that
-the app carries the Slikk.Dev and Ansy trademarks, which their open-source
-terms ask to be stated. Once approved, their signing step is added to the
-release workflow and approved builds show "SignPath Foundation" as the
+Apply at https://signpath.org/apply after the first release. Before applying,
+check their current [conditions](https://signpath.org/terms): a public project
+built by CI, a published release, a code signing policy linked from the home
+and download pages, and multi-factor authentication for every team member's
+GitHub and SignPath access. Verify the team's authentication setup; the
+repository alone does not prove this requirement is met.
+
+The application also asks for a maintainer contact and evidence of the
+project's reputation. Describe a new project's adoption honestly and mention
+that the app carries the Slikk.Dev and Ansy trademarks. The maintainer must
+agree to the current terms and personal-data processing before submission.
+Acceptance is not automatic. Once approved, add their signing step to the
+release workflow; approved builds then show "SignPath Foundation" as the
 publisher.
 
 ## Each release

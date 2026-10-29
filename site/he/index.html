@@ -89,6 +89,7 @@
           <li><a href="#try">לנסות</a></li>
           <li><a href="#experiences">החוויות</a></li>
           <li><a href="#how">איך זה עובד</a></li>
+          <li><a href="#download">הורדה</a></li>
           <li><a href="#faq">שאלות</a></li>
         </ul>
         <a class="lang-link" href="../" hreflang="en" lang="en">English</a>
@@ -108,7 +109,7 @@
         <h1 id="hero-title">האתר שלכם נראה מעולה. <span class="accent">בשבילכם.</span></h1>
         <p class="lede">אָנְסִי הוא דפדפן חינמי למחשב, שמאפשר לחוות את האתר שלכם כמו שחווים אותו אנשים עם ראייה ירודה, עיוורון צבעים, מוגבלות מוטורית, לקות שמיעה או קשיי קשב. הוא מביא איתו גם את הכלים שהם נעזרים בהם, כמו קורא מסך, הגדלה וניווט במקלדת בלבד. רואים מה נשבר, ומעבירים למפתח דוח ברור.</p>
         <div class="actions">
-          <a class="btn btn-primary" href="https://github.com/SlikkDev/Ansy/releases/latest">
+          <a class="btn btn-primary" href="#download">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
             להורדת אָנְסִי 2.0
           </a>
@@ -445,6 +446,45 @@
       </div>
     </section>
 
+    <section class="section" id="download" aria-labelledby="download-title">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">גרסה 2.0.0 · 29 באוקטובר 2026</span>
+          <h2 id="download-title">מורידים את אָנְסִי.</h2>
+          <p class="lede">בחרו את מערכת ההפעלה שלכם. ההורדה חינמית, בלי הרשמה. הגרסאות הראשונות ל־macOS ול־Windows עדיין אינן חתומות דיגיטלית; פרטי ההתקנה מופיעים כאן.</p>
+        </div>
+        <ul class="grid" role="list">
+          <li class="card">
+            <h3 lang="en" dir="ltr">macOS</h3>
+            <p>למק עם שבב מסדרת M בחרו Apple silicon. למק עם מעבד Intel בחרו בגרסת Intel.</p>
+            <div class="actions">
+              <a class="btn btn-ghost" href="https://github.com/SlikkDev/Ansy/releases/download/v2.0.0/Ansy-2.0.0-arm64.dmg">למק עם Apple silicon ‏(.dmg)</a>
+              <a class="btn btn-ghost" href="https://github.com/SlikkDev/Ansy/releases/download/v2.0.0/Ansy-2.0.0.dmg">למק עם Intel ‏(.dmg)</a>
+            </div>
+            <p>האפליקציה עדיין אינה חתומה ולא עברה אישור של Apple, ולכן macOS עשויה לחסום את הפתיחה שלה. בגרסה הזאת אין עדכונים אוטומטיים; גרסאות חדשות מורידים מכאן.</p>
+          </li>
+          <li class="card">
+            <h3 lang="en" dir="ltr">Windows</h3>
+            <p>התקנה ישירה במחשבים עם מעבדי Intel או AMD ‏(x64).</p>
+            <div class="actions">
+              <a class="btn btn-ghost" href="https://github.com/SlikkDev/Ansy/releases/download/v2.0.0/Ansy-Setup-2.0.0.exe">התקנה ל־Windows ‏(.exe)</a>
+            </div>
+            <p>קובץ ההתקנה עדיין אינו חתום דיגיטלית. אם SmartScreen מציג את ההודעה "Windows הגן על המחשב שלך", בחרו "מידע נוסף" ואז "הפעל בכל זאת". בממשק באנגלית: "More info" ואז "Run anyway". גרסה ב־Microsoft Store עדיין אינה זמינה.</p>
+          </li>
+          <li class="card">
+            <h3 lang="en" dir="ltr">Linux</h3>
+            <p>למחשבים עם מעבדי Intel או AMD ‏(x64). בחרו AppImage, או חבילת .deb ל־Debian ול־Ubuntu.</p>
+            <div class="actions">
+              <a class="btn btn-ghost" href="https://github.com/SlikkDev/Ansy/releases/download/v2.0.0/Ansy-2.0.0.AppImage">ל־Linux: קובץ AppImage</a>
+              <a class="btn btn-ghost" href="https://github.com/SlikkDev/Ansy/releases/download/v2.0.0/ansy_2.0.0_amd64.deb">ל־Debian ול־Ubuntu ‏(.deb)</a>
+            </div>
+            <p>לפני פתיחת ה־AppImage יש לתת לקובץ הרשאת הרצה. בהתקנה מחבילת .deb, כל גרסה חדשה מורידים ומתקינים ידנית.</p>
+          </li>
+        </ul>
+        <p><a href="https://github.com/SlikkDev/Ansy/releases/tag/v2.0.0">מה חדש בגרסה וכל הקבצים ב־GitHub</a> · <a href="https://github.com/SlikkDev/Ansy#code-signing-policy">מדיניות החתימה הדיגיטלית (Code signing policy, באנגלית)</a></p>
+      </div>
+    </section>
+
     <section class="section" id="faq" aria-labelledby="faq-title">
       <div class="wrap">
         <div class="section-head">
@@ -482,7 +522,7 @@
           </details>
           <details>
             <summary>איך מתקינים?</summary>
-            <div class="answer"><p>פותחים את <a href="https://github.com/SlikkDev/Ansy/releases/latest">הגרסה האחרונה</a> ובוחרים את הקובץ שמתאים למחשב: ב־Mac, <span dir="ltr">Ansy-2.0.0-arm64.dmg</span> למעבדי Apple או <span dir="ltr">Ansy-2.0.0.dmg</span> ל־Intel; ב־Windows, <span dir="ltr">Ansy-Setup-2.0.0.exe</span>; ב־Linux, ה־AppImage או ה־deb. מכאן אָנְסִי מתעדכן לבד.</p><p>הגרסאות הראשונות עוד לא חתומות, אז המחשב ישאל פעם אחת. ב־Mac, לוחצים על אָנְסִי בתיקיית Applications עם Control ובוחרים Open. ב־Windows, בוחרים More info ואז Run anyway. גרסאות חתומות, ואָנְסִי ב־Microsoft Store, בדרך.</p></div>
+            <div class="answer"><p><a href="#download">בוחרים את מערכת ההפעלה באזור ההורדות</a> וקוראים את פרטי ההתקנה. הגרסאות הנוכחיות ל־macOS ול־Windows עדיין אינן חתומות דיגיטלית. ב־Windows, אם SmartScreen מציג אזהרה, בוחרים "מידע נוסף" ואז "הפעל בכל זאת" (באנגלית: "More info", ואז "Run anyway"). macOS עשויה לחסום את פתיחת האפליקציה שאינה חתומה.</p><p>בגרסת המק הזאת ובהתקנות מחבילת .deb אין עדכונים אוטומטיים; גרסאות חדשות מורידים ידנית. גרסאות חתומות וגרסה ב־Microsoft Store עדיין בהמשך.</p></div>
           </details>
         </div>
       </div>
@@ -493,7 +533,7 @@
         <h2 id="cta-title">תהיו הראשונים לראות את מה שהלקוחות שלכם רואים.</h2>
         <p>גרסה 2.0 של אָנְסִי יצאה, בחינם ל־macOS, ל־Windows ול־Linux. הורידו אותה, או הצטרפו עם רעיונות וקוד.</p>
         <div class="actions">
-          <a class="btn btn-primary" href="https://github.com/SlikkDev/Ansy/releases/latest">להורדת אָנְסִי 2.0</a>
+          <a class="btn btn-primary" href="#download">להורדת אָנְסִי 2.0</a>
           <a class="btn btn-ghost" href="https://github.com/SlikkDev/Ansy">אָנְסִי ב־GitHub</a>
           <a class="btn btn-ghost" href="https://github.com/SlikkDev/Ansy/issues">להציע רעיון</a>
         </div>

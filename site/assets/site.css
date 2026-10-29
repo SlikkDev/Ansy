@@ -525,6 +525,9 @@ html:not(.js) .icon-btn { display: none; }
 .card h4 { margin-bottom: 0.5rem; }
 .kicker { display: block; margin-bottom: 0.4rem; font-size: 0.8125rem; font-weight: 600; color: var(--accent); }
 .card p { color: var(--ink-soft); font-size: 0.9875rem; }
+#download .card > * + * { margin-block-start: 1rem; }
+#download .wrap > p { margin-block-start: 1.5rem; }
+#download .eyebrow, #download a:not(.btn) { color: var(--ink); }
 .card .tool {
   display: inline-block;
   margin-top: 1rem;
