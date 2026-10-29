@@ -55,7 +55,7 @@ code, made by its developer.
 src/
   main/      Electron main process: window, site view, security, settings, menu, IPC,
              the experience engine (DevTools switches), the in-page helpers
-             (observe, keyboard trail, vision overlay, axe scan, highlight,
+             (observe, keyboard trail, vision overlay, switch scanning, tremor, axe scan, highlight,
              check again) shipped as
              source text, Ansy Reader's engine (the accessibility tree over the
              DevTools protocol, the virtual cursor, the keys), the practice shop

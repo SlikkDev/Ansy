@@ -33,6 +33,9 @@ describe('switchesFor', () => {
       scan: false,
       reader: false,
       cover: false,
+      scanRules: null,
+      switchAccess: null,
+      tremor: false,
     })
   })
 
@@ -119,6 +122,23 @@ describe('switchesFor', () => {
     expect(switchesFor(on({ active: 'zoom', mouseOff: true })).mouseOff).toBe(false)
   })
 
+  it('shakes the pointer and checks target size for tremor', () => {
+    expect(switchesFor(on({ active: 'tremor' }))).toMatchObject({
+      tremor: true,
+      scan: true,
+      scanRules: ['target-size'],
+    })
+    expect(switchesFor(on({ active: 'scan' })).scanRules).toBeNull()
+  })
+
+  it('scans at the chosen switch speed', () => {
+    expect(switchesFor(on({ active: 'switchAccess' })).switchAccess).toBe('normal')
+    expect(switchesFor(on({ active: 'switchAccess', switchSpeed: 'slow' })).switchAccess).toBe(
+      'slow',
+    )
+    expect(switchesFor(on({ active: 'zoom', switchSpeed: 'fast' })).switchAccess).toBeNull()
+  })
+
   it('turns the scan on by itself', () => {
     expect(switchesFor(on({ active: 'scan' }))).toMatchObject({ scan: true, observe: null })
   })
@@ -146,10 +166,21 @@ describe('sanitizeExperiencePatch', () => {
       field: 'central',
       haze: 'glare',
       darkForce: true,
+      switchSpeed: 'fast',
     })
-    expect(next).toMatchObject({ field: 'central', haze: 'glare', darkForce: true })
+    expect(next).toMatchObject({
+      field: 'central',
+      haze: 'glare',
+      darkForce: true,
+      switchSpeed: 'fast',
+    })
     expect(
-      sanitizeExperiencePatch(next, { field: 'peripheral', haze: 'fog', darkForce: 'yes' }),
+      sanitizeExperiencePatch(next, {
+        field: 'peripheral',
+        haze: 'fog',
+        darkForce: 'yes',
+        switchSpeed: 'warp',
+      }),
     ).toEqual(next)
   })
 
@@ -169,7 +200,7 @@ describe('sanitizeExperiencePatch', () => {
 describe('the panel table', () => {
   it('puts every experience in an area, and every Low one says it is an impression', () => {
     const lows = experiences.filter((e) => e.fidelity === 'low').map((e) => e.id)
-    expect(lows).toEqual(['tunnelVision', 'haze'])
+    expect(lows).toEqual(['tunnelVision', 'haze', 'tremor'])
     expect(en['fidelity.low']).toBe('A rough impression')
     for (const area of experienceAreas) {
       expect(experiences.some((e) => e.area === area)).toBe(true)

@@ -23,6 +23,14 @@ All notable changes to Ansy are recorded here. The format follows
 - Dark mode: the site is told the visitor prefers dark, Ansy says whether it has
   a dark theme of its own, and an option darkens sites that don't, as Chrome's
   auto dark mode does.
+- Tremor and unsteady hands: the pointer shakes, and a click lands wherever the
+  shake carries it. A rough impression. The card also runs axe's 24-pixel
+  target size check (WCAG 2.5.8), which the automatic scan now includes too.
+- Switch access: a highlight steps through the site's controls by itself, at a
+  slow, normal or fast pace, and Space picks the one it rests on, as a
+  single-switch device does. The card counts the moves each pick took and lists
+  what looks clickable but is never reached.
+- The practice shop has two tiny quantity buttons, for the target size check.
 
 ## 1.0.0
 

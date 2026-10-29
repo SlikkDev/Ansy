@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { keyboardRules, type KeyboardRuleGroup } from '../../../shared/findings'
 import type { MessageKey } from '../../../shared/i18n'
 import type { KeyboardFinding, KeyboardReport } from '../../../shared/keyboard'
+import type { SwitchReport } from '../../../shared/motor'
 import { isExplainedRule, type ScanIssue, type ScanResult } from '../../../shared/scan'
 import { ansy } from '../lib/ansy'
 import { useCapture, type CaptureStart } from '../lib/findings'
@@ -98,6 +99,60 @@ export function KeyboardFindings({
       </div>
       <button type="button" className="btn mt-3" onClick={onClear} disabled={!report.stops}>
         {t('exp.keyboard.clear')}
+      </button>
+    </section>
+  )
+}
+
+/**
+ * The switch access card's tally: moves and picks so far, and what scanning
+ * never lands on. A skipped control is the keyboard's "unreachable" rule: switch
+ * devices reach what the keyboard reaches, so the fix and its check are the same.
+ */
+export function SwitchFindings({ report, onClear }: { report: SwitchReport; onClear: () => void }) {
+  const t = useT()
+  const rule = keyboardRules.unreachable
+  const startFor = (item: KeyboardFinding): CaptureStart => ({
+    kind: 'keyboard',
+    severity: rule.severity,
+    rule: {
+      id: rule.id,
+      help: t('exp.switchAccess.skipped'),
+      description: '',
+      helpUrl: '',
+      wcag: [...rule.wcag],
+      level: rule.level,
+    },
+    element: { target: item.target, html: item.label },
+  })
+  return (
+    <section>
+      <h4 className={heading}>{t('panel.noticed')}</h4>
+      <div aria-live="polite">
+        <p>
+          {report.steps
+            ? t('exp.switchAccess.steps', { steps: report.steps, picks: report.picks })
+            : t('exp.switchAccess.noSteps')}
+        </p>
+        {report.lastPickSteps !== null && (
+          <p>{t('exp.switchAccess.lastPick', { count: report.lastPickSteps })}</p>
+        )}
+        {report.skipped.length > 0 && (
+          <div className="mt-2">
+            <h5 className="font-medium">{t('exp.switchAccess.skipped')}</h5>
+            <ul className="list-disc ps-5">
+              {report.skipped.map((item) => (
+                <li key={item.target}>
+                  <span dir="auto">{item.label}</span> <ShowOnPage target={item.target} />{' '}
+                  <SaveFinding start={startFor(item)} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+      <button type="button" className="btn mt-3" onClick={onClear} disabled={!report.steps}>
+        {t('exp.switchAccess.clear')}
       </button>
     </section>
   )

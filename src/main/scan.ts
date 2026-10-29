@@ -28,7 +28,11 @@ export interface RawScan {
  * Runs inside the page, where `axe` is already loaded. Shipped as source text
  * (`scanPage.toString()`), so it must not reach for anything outside its body.
  */
-export function scanPage(localeJson: string | null, maxNodes: number): Promise<RawScan> {
+export function scanPage(
+  localeJson: string | null,
+  maxNodes: number,
+  rules: string[] | null,
+): Promise<RawScan> {
   type AxeNode = { target: unknown[]; html: string; failureSummary?: string }
   type AxeResult = {
     id: string
@@ -84,6 +88,10 @@ export function scanPage(localeJson: string | null, maxNodes: number): Promise<R
       iframes: false,
       resultTypes: ['violations', 'incomplete'],
       elementRef: false,
+      // WCAG 2.2's 24-pixel target size is AA, but axe leaves it off unless asked.
+      ...(rules
+        ? { runOnly: { type: 'rule', values: rules } }
+        : { rules: { 'target-size': { enabled: true } } }),
     })
     .then((results) => ({
       violations: results.violations.map(trim),
@@ -152,11 +160,12 @@ export async function runAxe(
   contents: WebContents,
   world: number,
   locale: Locale,
+  rules: string[] | null = null,
 ): Promise<RawScan> {
   const run = (code: string) => contents.executeJavaScriptInIsolatedWorld(world, [{ code }])
   const loaded = (await run('typeof axe === "object"')) as boolean
   if (!loaded) await run(axeSource)
-  const call = `(${scanPageSource})(${JSON.stringify(axeLocales[locale] ?? null)}, ${MAX_NODES})`
+  const call = `(${scanPageSource})(${JSON.stringify(axeLocales[locale] ?? null)}, ${MAX_NODES}, ${JSON.stringify(rules)})`
   return (await run(call)) as RawScan
 }
 

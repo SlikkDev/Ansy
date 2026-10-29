@@ -18,6 +18,15 @@ import {
 } from '../shared/findings'
 import type { Locale } from '../shared/i18n'
 import { emptyKeyboardReport, isKeyboardReport, type KeyboardReport } from '../shared/keyboard'
+import {
+  emptySwitchReport,
+  emptyTremorReport,
+  isSwitchReport,
+  isTremorReport,
+  switchInterval,
+  type SwitchReport,
+  type TremorReport,
+} from '../shared/motor'
 import type { ReaderCommand, ReaderEvent } from '../shared/reader'
 import { sortIssues, toScanIssue, type ScanResult } from '../shared/scan'
 import { highlightSource } from './highlight'
@@ -28,6 +37,16 @@ import {
   keyboardUninstallSource,
   MOUSE_OFF_CSS,
 } from './keyboard-helper'
+import {
+  NO_CURSOR_CSS,
+  switchHelperSource,
+  switchReportSource,
+  switchResetSource,
+  switchUninstallSource,
+  tremorHelperSource,
+  tremorReportSource,
+  tremorUninstallSource,
+} from './motor-helpers'
 import { observeSource } from './observe'
 import { overlayHideSource, overlaySource, overlayUninstallSource } from './overlay-helper'
 import { Reader } from './reader'
@@ -46,10 +65,18 @@ const SCAN_DELAY = 800
 /** How often the keyboard helper is asked what it has seen. */
 const KEYBOARD_POLL = 400
 
-/** The style sheets Ansy inserts into the page, by what they do. */
-type Sheet = 'spacing' | 'mouse' | 'cover'
+/** The same for the switch access and tremor helpers. */
+const MOTOR_POLL = 400
 
-const noSheets = (): Record<Sheet, string | null> => ({ spacing: null, mouse: null, cover: null })
+/** The style sheets Ansy inserts into the page, by what they do. */
+type Sheet = 'spacing' | 'mouse' | 'cover' | 'cursor'
+
+const noSheets = (): Record<Sheet, string | null> => ({
+  spacing: null,
+  mouse: null,
+  cover: null,
+  cursor: null,
+})
 
 /**
  * Applies an ExperienceState to the site view. Every switch that changes how
@@ -63,6 +90,10 @@ export class ExperienceEngine {
   private observations: Observations | null = null
   private keyboard: KeyboardReport | null = null
   private scan: ScanResult | null = null
+  private switchReport: SwitchReport | null = null
+  /** Switch access counts from the pages before this one, since counting began. */
+  private switchCarry = { steps: 0, picks: 0 }
+  private tremor: TremorReport | null = null
   /** A scan is due or under way; the card says so. */
   private scanning = false
   private running = false
@@ -73,6 +104,7 @@ export class ExperienceEngine {
   private observeTimer: ReturnType<typeof setTimeout> | null = null
   private scanTimer: ReturnType<typeof setTimeout> | null = null
   private keyboardTimer: ReturnType<typeof setInterval> | null = null
+  private motorTimer: ReturnType<typeof setInterval> | null = null
   /** Bumped on every change and every load, so a late result from before is dropped. */
   private generation = 0
 
@@ -96,6 +128,12 @@ export class ExperienceEngine {
       state: { ...this.state },
       observations: this.observations,
       keyboard: this.keyboard,
+      switchAccess: this.switchReport && {
+        ...this.switchReport,
+        steps: this.switchReport.steps + this.switchCarry.steps,
+        picks: this.switchReport.picks + this.switchCarry.picks,
+      },
+      tremor: this.tremor,
       scan: this.scan,
       scanning: this.scanning,
       reader: this.applied.reader ? this.reader.getReport() : null,
@@ -190,6 +228,17 @@ export class ExperienceEngine {
     return 'unknown'
   }
 
+  /** Starts counting over: the keyboard trail, or switch access's steps and picks. */
+  async resetCounting(): Promise<void> {
+    if (this.applied.switchAccess) {
+      await this.runInWorld(switchResetSource)
+      this.switchCarry = { steps: 0, picks: 0 }
+      this.switchReport = { ...emptySwitchReport, skipped: this.switchReport?.skipped ?? [] }
+      this.report()
+    }
+    await this.resetKeyboard()
+  }
+
   /** Starts the keyboard trail over, keeping what the page cannot reach. */
   async resetKeyboard(): Promise<void> {
     if (!this.applied.keyboard) return
@@ -247,9 +296,21 @@ export class ExperienceEngine {
     if (want.reader !== was.reader) {
       tasks.push(want.reader ? this.reader.start() : this.reader.stop())
     }
-    if (want.scan !== was.scan) {
-      if (want.scan) this.scheduleScan()
-      else this.dropScan()
+    if (
+      want.scan !== was.scan ||
+      JSON.stringify(want.scanRules) !== JSON.stringify(was.scanRules)
+    ) {
+      if (want.scan) {
+        this.scan = null
+        this.scheduleScan()
+      } else this.dropScan()
+    }
+    if (want.tremor !== was.tremor) {
+      tasks.push(this.applySheet('cursor', NO_CURSOR_CSS, want.tremor))
+      tasks.push(this.applyTremor(want.tremor))
+    }
+    if (want.switchAccess !== was.switchAccess) {
+      tasks.push(this.applySwitch(want.switchAccess !== null, was.switchAccess !== null))
     }
     if (want.zoomFactor !== was.zoomFactor) this.contents.setZoomFactor(want.zoomFactor)
     if (want.muted !== was.muted) this.contents.setAudioMuted(want.muted)
@@ -274,6 +335,22 @@ export class ExperienceEngine {
     if (want.mouseOff) await this.applySheet('mouse', MOUSE_OFF_CSS, true)
     if (want.cover) await this.applySheet('cover', COVER_CSS, true)
     if (want.overlay) await this.runInWorld(overlaySource(want.overlay))
+    if (want.tremor) {
+      await this.applySheet('cursor', NO_CURSOR_CSS, true)
+      await this.runInWorld(tremorHelperSource)
+    }
+    if (want.switchAccess) {
+      // The count runs on across pages, so a checkout's steps add up.
+      if (this.switchReport) {
+        this.switchCarry.steps += this.switchReport.steps
+        this.switchCarry.picks += this.switchReport.picks
+      }
+      this.switchReport = {
+        ...emptySwitchReport,
+        lastPickSteps: this.switchReport?.lastPickSteps ?? null,
+      }
+      await this.runInWorld(switchHelperSource(switchInterval[want.switchAccess]))
+    }
     if (want.reader) this.reader.pageLoaded()
     if (want.keyboard) {
       await this.runInWorld(keyboardHelperSource)
@@ -287,7 +364,7 @@ export class ExperienceEngine {
       this.scan = null
       this.scheduleScan()
     }
-    if (want.keyboard || want.observe || want.scan) this.report()
+    if (want.keyboard || want.observe || want.scan || want.switchAccess) this.report()
   }
 
   private async applySheet(sheet: Sheet, css: string, on: boolean): Promise<void> {
@@ -319,6 +396,72 @@ export class ExperienceEngine {
       this.keyboard = null
       await this.runInWorld(keyboardUninstallSource)
     }
+  }
+
+  private async applyTremor(on: boolean): Promise<void> {
+    if (on) {
+      await this.runInWorld(tremorHelperSource)
+      this.tremor = { ...emptyTremorReport }
+    } else {
+      this.tremor = null
+      await this.runInWorld(tremorUninstallSource)
+    }
+    this.syncMotorPoll()
+  }
+
+  /** Installs, re-speeds or removes switch scanning. */
+  private async applySwitch(on: boolean, wasOn: boolean): Promise<void> {
+    const speed = this.applied.switchAccess
+    if (on && speed) {
+      if (!wasOn) {
+        this.switchCarry = { steps: 0, picks: 0 }
+        this.switchReport = { ...emptySwitchReport }
+      }
+      await this.runInWorld(switchHelperSource(switchInterval[speed]))
+    } else {
+      this.switchReport = null
+      this.switchCarry = { steps: 0, picks: 0 }
+      await this.runInWorld(switchUninstallSource)
+    }
+    this.syncMotorPoll()
+  }
+
+  private syncMotorPoll(): void {
+    const needed = this.applied.tremor || this.applied.switchAccess !== null
+    if (needed && !this.motorTimer) {
+      this.motorTimer = setInterval(() => void this.pollMotor(), MOTOR_POLL)
+    } else if (!needed && this.motorTimer) {
+      clearInterval(this.motorTimer)
+      this.motorTimer = null
+    }
+  }
+
+  /** Asks the switch and tremor helpers what they saw; reports only when something changed. */
+  private async pollMotor(): Promise<void> {
+    let changed = false
+    if (this.applied.switchAccess) {
+      const result = await this.runInWorld<unknown>(switchReportSource)
+      if (
+        this.applied.switchAccess &&
+        isSwitchReport(result) &&
+        JSON.stringify(result) !== JSON.stringify(this.switchReport)
+      ) {
+        this.switchReport = result
+        changed = true
+      }
+    }
+    if (this.applied.tremor) {
+      const result = await this.runInWorld<unknown>(tremorReportSource)
+      if (
+        this.applied.tremor &&
+        isTremorReport(result) &&
+        JSON.stringify(result) !== JSON.stringify(this.tremor)
+      ) {
+        this.tremor = result
+        changed = true
+      }
+    }
+    if (changed) this.report()
   }
 
   /** Asks the keyboard helper what it saw; reports only when something changed. */
@@ -369,7 +512,12 @@ export class ExperienceEngine {
       this.rerun = false
       const generation = this.generation
       try {
-        const raw = await runAxe(this.contents, HELPER_WORLD, this.getLocale())
+        const raw = await runAxe(
+          this.contents,
+          HELPER_WORLD,
+          this.getLocale(),
+          this.applied.scanRules,
+        )
         if (generation !== this.generation || !this.applied.scan) continue
         this.scan = isRawScan(raw)
           ? {
@@ -438,6 +586,8 @@ export class ExperienceEngine {
     if (this.observeTimer) clearTimeout(this.observeTimer)
     if (this.scanTimer) clearTimeout(this.scanTimer)
     if (this.keyboardTimer) clearInterval(this.keyboardTimer)
+    if (this.motorTimer) clearInterval(this.motorTimer)
+    this.motorTimer = null
     this.observeTimer = null
     this.scanTimer = null
     this.keyboardTimer = null
