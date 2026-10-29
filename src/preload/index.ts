@@ -14,6 +14,7 @@ import {
 } from '../shared/ipc'
 import type { ReaderCommand, ReaderEvent } from '../shared/reader'
 import type { UpdateStatus } from '../shared/update'
+import type { VoiceResult } from '../shared/voice'
 
 /** Read once, before the first paint, so the language and theme never flash. */
 const initial = ipcRenderer.sendSync(channels.appInitial) as InitialState
@@ -61,6 +62,9 @@ export const ansy = {
     scan: (): Promise<ExperienceReport | null> => ipcRenderer.invoke(channels.expScan),
     show: (target: string): Promise<boolean> => ipcRenderer.invoke(channels.expShow, target),
     resetKeyboard: (): Promise<void> => ipcRenderer.invoke(channels.expKeyboardReset),
+    /** Runs a voice control command, typed or dictated, on the site. */
+    voice: (command: string): Promise<VoiceResult | null> =>
+      ipcRenderer.invoke(channels.expVoice, command),
   },
   reader: {
     /** Moves the virtual cursor, activates, or reads the page again. What is said arrives through onEvent. */

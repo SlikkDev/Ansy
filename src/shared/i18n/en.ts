@@ -57,6 +57,7 @@ export const en = {
   'exp.darkMode': 'Dark mode',
   'exp.tremor': 'Tremor and unsteady hands',
   'exp.switchAccess': 'Switch access',
+  'exp.voiceControl': 'Voice control',
 
   'area.vision': 'Sight and blindness',
   'area.lowVision': 'Low vision and light sensitivity',
@@ -391,7 +392,7 @@ export const en = {
   'exp.tremor.look':
     'Small links and buttons that are hard to hit.\nControls packed so close that a miss presses the neighbour.\nCheckboxes and close buttons the size of a letter.',
   'exp.tremor.fidelity':
-    'The shake is a rough impression; the size check is exact. People with a tremor often use the keyboard or a switch instead, both in this list.',
+    'The shake is a rough impression; the size check is exact. People with a tremor often use the keyboard, a switch or their voice instead, all in this list.',
   'exp.tremor.clicks': 'Clicks: {clicks}. Landed somewhere else: {misses}.',
   'exp.tremor.noClicks': 'Click around the site and see where the clicks land.',
 
@@ -412,6 +413,44 @@ export const en = {
   'exp.switchAccess.lastPick': 'Moves to reach the last pick: {count}',
   'exp.switchAccess.skipped': 'Clickable, but the scan never lands on it',
   'exp.switchAccess.clear': 'Start counting again',
+
+  'exp.voiceControl.what':
+    'Ansy takes commands the way voice control on a Mac, on Windows or in Dragon does: “click” and the name of a button, “show numbers” to number everything you can click, then “click 4”. Type them, or speak them into the box with your computer’s own dictation. People who can’t use their hands run whole sites this way.',
+  'exp.voiceControl.look':
+    'Buttons that show one thing and are named another, so saying what you see finds nothing.\nIcons with no name at all, reachable only by number.\nThe same name on many things, like a row of “Read more” links.',
+  'exp.voiceControl.fidelity':
+    'Commands find controls by the name the page gives them, as real voice control does. Real tools understand more ways of saying things and fix their own mistakes; Ansy only reads what is typed or dictated into the box.',
+  'exp.voiceControl.command': 'Command',
+  'exp.voiceControl.run': 'Run',
+  'exp.voiceControl.examples':
+    'Try: click Buy now · show numbers · click 3 · scroll down · type hello',
+  'exp.voiceControl.examplesOther': 'Hebrew works too:',
+  'exp.voiceControl.results': 'What the commands did',
+  'exp.voiceControl.dictation.mac':
+    'To speak instead, click in the box and start your Mac’s dictation: press the microphone key, or Fn twice. Ansy itself sends nothing anywhere.',
+  'exp.voiceControl.dictation.windows':
+    'To speak instead, click in the box and press Windows+H to start voice typing. Ansy itself sends nothing anywhere.',
+  'exp.voiceControl.dictation.other':
+    'Type the commands here. If your computer has a dictation tool, it can fill the box too; Ansy itself sends nothing anywhere.',
+  'exp.voiceControl.nothingYet': 'Run a command and Ansy says what happened.',
+  'exp.voiceControl.result.clicked': 'Clicked “{name}”.',
+  'exp.voiceControl.result.focused': '“{name}” has focus. Say “type” and the words.',
+  'exp.voiceControl.result.numbers':
+    'Numbered {count} things you can click. Say “click” and a number.',
+  'exp.voiceControl.result.hidden': 'The numbers are gone.',
+  'exp.voiceControl.result.scrolled': 'Scrolled.',
+  'exp.voiceControl.result.typed': 'Typed into the field.',
+  'exp.voiceControl.result.noField': 'No field has focus. Click one by name first.',
+  'exp.voiceControl.result.choose':
+    'Things that answer to that name: {count}. Each has a number now; say “click” and its number.',
+  'exp.voiceControl.result.mismatch':
+    'Nothing is named “{said}”. The control that shows those words is named “{name}”, so voice control can’t find it by what it shows.',
+  'exp.voiceControl.result.notFound': 'Nothing on the page is named “{said}”.',
+  'exp.voiceControl.result.unknown':
+    'Ansy didn’t understand. Try “click” and a name, “show numbers” or “scroll down”.',
+  'exp.voiceControl.result.noPage': 'There is no page to give the command to.',
+  'exp.voiceControl.missed': 'Shows one name, answers to another',
+  'exp.voiceControl.shows': 'Shows “{visible}”, named “{name}”',
 
   'exp.scan.what':
     'Ansy runs axe-core, the checker behind Lighthouse and most accessibility tools, on the page as it is right now, and explains each result in plain words. Automatic checks catch roughly a third of the barriers; the other experiences are for the rest.',
@@ -626,6 +665,8 @@ export const en = {
     'The page blocks zooming. People with low vision can’t enlarge it. Remove user-scalable=no and maximum-scale.',
   'rule.tabindex':
     'A tabindex above 0 forces its own tab order. Keyboard users then jump around the page unexpectedly. Use 0 or -1 and let the page order decide.',
+  'rule.label-content-name-mismatch':
+    'The words this control shows aren’t in its name. People using voice control say what they see, and nothing answers. Start the name with the visible words.',
   'rule.target-size':
     'This control is too small to hit. People with a tremor, or big thumbs, miss it. Make it at least 24 by 24 pixels, or give it space.',
   'rule.scrollable-region-focusable':

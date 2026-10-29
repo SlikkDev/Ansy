@@ -20,6 +20,8 @@ export function switchHelper(interval: number): SwitchReport {
 
   const ACCENT = '#ff2d6b'
   const MAX_SKIPPED = 25
+  // The same as SWITCH_PICK_MESSAGE in src/shared/motor.ts.
+  const PICK_MESSAGE = '__ansy:switch-pick '
   const FOCUSABLE =
     'a[href], button, input, select, textarea, summary, iframe, audio[controls], video[controls], [tabindex], [contenteditable]'
 
@@ -144,6 +146,9 @@ export function switchHelper(interval: number): SwitchReport {
     picks += 1
     lastPickSteps = steps - stepsAtPick
     stepsAtPick = steps
+    // A pick often opens a page, and the counts would go with this one before
+    // Ansy next asks; so they are announced now, on the console Ansy listens to.
+    console.debug(`${PICK_MESSAGE}${JSON.stringify({ steps, picks, lastPickSteps })}`)
     ;(el as HTMLElement).focus()
     if (!editable(el)) (el as HTMLElement).click()
     // Like a real scanning device, the next round starts from the top.

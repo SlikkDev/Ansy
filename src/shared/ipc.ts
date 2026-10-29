@@ -99,6 +99,7 @@ export const channels = {
   expScan: 'exp:scan',
   expShow: 'exp:show',
   expKeyboardReset: 'exp:keyboard-reset',
+  expVoice: 'exp:voice',
   readerCommand: 'reader:command',
   readerShow: 'reader:show',
   readerElement: 'reader:element',

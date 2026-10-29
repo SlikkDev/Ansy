@@ -8,6 +8,7 @@ import type { KeyboardReport } from './keyboard'
 import { switchSpeeds, type SwitchReport, type SwitchSpeed, type TremorReport } from './motor'
 import type { ReaderReport } from './reader'
 import type { ScanResult } from './scan'
+import type { VoiceReport } from './voice'
 
 export type ExperienceId =
   | 'colorBlindness'
@@ -22,6 +23,7 @@ export type ExperienceId =
   | 'keyboard'
   | 'tremor'
   | 'switchAccess'
+  | 'voiceControl'
   | 'noSound'
   | 'motion'
   | 'scan'
@@ -65,6 +67,7 @@ export const experiences: readonly ExperienceInfo[] = [
   { id: 'keyboard', area: 'motor', fidelity: 'high', available: true },
   { id: 'tremor', area: 'motor', fidelity: 'low', available: true },
   { id: 'switchAccess', area: 'motor', fidelity: 'medium', available: true },
+  { id: 'voiceControl', area: 'motor', fidelity: 'medium', available: true },
   { id: 'noSound', area: 'hearing', fidelity: 'medium', available: true },
   { id: 'motion', area: 'cognitive', fidelity: 'high', available: true },
   { id: 'scan', area: 'check', fidelity: 'high', available: true },
@@ -178,6 +181,8 @@ export interface ExperienceReport {
   switchAccess: SwitchReport | null
   /** Tremor: clicks made and those the shake carried elsewhere, while it runs. */
   tremor: TremorReport | null
+  /** Voice control: commands that missed because a name differs from what shows, while it runs. */
+  voice: VoiceReport | null
   /** The last automatic scan of the current page, while the scan runs. */
   scan: ScanResult | null
   /** A scan is due or under way. */
@@ -218,6 +223,8 @@ export interface SiteSwitches {
   switchAccess: SwitchSpeed | null
   /** A shaking pointer in place of the real one. */
   tremor: boolean
+  /** Voice control: the command box's helper, and numbers on request. */
+  voice: boolean
   /** Ansy Reader: the accessibility tree read aloud, keys taken from the site. */
   reader: boolean
   /** The site painted black. */
@@ -242,6 +249,7 @@ export function switchesFor(state: ExperienceState): SiteSwitches {
     scanRules: null,
     switchAccess: null,
     tremor: false,
+    voice: false,
     reader: false,
     cover: false,
   }
@@ -284,6 +292,9 @@ export function switchesFor(state: ExperienceState): SiteSwitches {
       return { ...off, tremor: true, scan: true, scanRules: ['target-size'] }
     case 'switchAccess':
       return { ...off, switchAccess: state.switchSpeed }
+    case 'voiceControl':
+      // What a command misses by name, the label-in-name rule finds on the whole page.
+      return { ...off, voice: true, scan: true, scanRules: ['label-content-name-mismatch'] }
     case 'motion':
       return {
         ...off,

@@ -40,7 +40,8 @@ page, in a world the site's scripts cannot see: one counts the animations that
 keep moving and the videos without captions, one draws the keyboard-only focus
 ring and numbered trail and notes what the keyboard cannot do, one steps
 through the controls as a switch device does, one shakes the pointer for the
-tremor experience, and one runs
+tremor experience, one carries out voice control's commands by each control's
+name, and one runs
 [axe-core](https://github.com/dequelabs/axe-core) for the automatic scan, whose
 results Ansy explains in plain words, in both languages, and maps to their WCAG
 success criteria.

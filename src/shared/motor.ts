@@ -23,6 +23,26 @@ export interface SwitchReport {
   skipped: KeyboardFinding[]
 }
 
+/** What the switch helper logs on each pick, followed by its counts as JSON. */
+export const SWITCH_PICK_MESSAGE = '__ansy:switch-pick '
+
+/** The counts a pick announces, or null when the message is something else. */
+export function parseSwitchPick(
+  message: string,
+): Pick<SwitchReport, 'steps' | 'picks' | 'lastPickSteps'> | null {
+  if (!message.startsWith(SWITCH_PICK_MESSAGE)) return null
+  try {
+    const value = JSON.parse(message.slice(SWITCH_PICK_MESSAGE.length)) as unknown
+    return isSwitchReport({ ...(value as object), skipped: [] })
+      ? (({ steps, picks, lastPickSteps }) => ({ steps, picks, lastPickSteps }))(
+          value as SwitchReport,
+        )
+      : null
+  } catch {
+    return null
+  }
+}
+
 export const emptySwitchReport: SwitchReport = {
   steps: 0,
   picks: 0,

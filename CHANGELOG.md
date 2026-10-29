@@ -31,6 +31,18 @@ All notable changes to Ansy are recorded here. The format follows
   single-switch device does. The card counts the moves each pick took and lists
   what looks clickable but is never reached.
 - The practice shop has two tiny quantity buttons, for the target size check.
+- Voice control: commands typed, or spoken through the system's own dictation,
+  into a command box: "click" and a name, "show numbers" and "click 4",
+  "scroll down", "type" and the words, in English or Hebrew. A command that
+  misses a control because it shows one name and is called another is listed,
+  and can be saved as a label-in-name finding (WCAG 2.5.3) that Check again
+  re-tests. The card also runs axe's label-in-name rule on the whole page.
+- The practice shop has a button that shows "Add to basket" and is named
+  "Purchase item", for voice control to miss.
+
+### Fixed
+
+- Switch access no longer loses the count of a pick that opens a new page.
 
 ## 1.0.0
 

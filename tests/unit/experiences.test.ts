@@ -36,6 +36,7 @@ describe('switchesFor', () => {
       scanRules: null,
       switchAccess: null,
       tremor: false,
+      voice: false,
     })
   })
 
@@ -137,6 +138,14 @@ describe('switchesFor', () => {
       'slow',
     )
     expect(switchesFor(on({ active: 'zoom', switchSpeed: 'fast' })).switchAccess).toBeNull()
+  })
+
+  it('takes voice commands and checks label in name', () => {
+    expect(switchesFor(on({ active: 'voiceControl' }))).toMatchObject({
+      voice: true,
+      scan: true,
+      scanRules: ['label-content-name-mismatch'],
+    })
   })
 
   it('turns the scan on by itself', () => {

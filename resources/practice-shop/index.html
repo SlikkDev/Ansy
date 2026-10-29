@@ -37,6 +37,13 @@
         line-height: 1;
         vertical-align: middle;
       }
+      .basket {
+        color: #222;
+        background: #f1f1f1;
+        border: 1px solid #222;
+        border-radius: 6px;
+        padding: 0.5rem 0.9rem;
+      }
       .legal {
         color: #aaa;
         font-size: 11px;
@@ -121,6 +128,17 @@
         </svg>
       </button>
     </div>
+    <!-- Shows one name and answers to another: voice control can't find it by what it shows. -->
+    <p>
+      <button
+        class="basket"
+        type="button"
+        aria-label="Purchase item"
+        onclick="qty.value = +qty.value + 1"
+      >
+        Add to basket
+      </button>
+    </p>
     <!-- Media the no-sound and motion experiences look at. Neither has a real source. -->
     <video id="promo" autoplay muted loop width="160" height="90" aria-label="Promo video"></video>
     <video id="captioned" width="160" height="90" aria-label="Captioned video">

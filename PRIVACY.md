@@ -61,6 +61,13 @@ Ansy Reader speaks through the voices installed on your computer, using the
 system's own speech engine. The text it reads is the page's accessibility
 tree, which stays on the computer.
 
+## Voice control
+
+Ansy has no microphone access and records no audio. Voice control reads only
+the text in its command box, typed or put there by your system's own
+dictation, and that text stays on the computer. Dictation is a feature of
+macOS or Windows, not of Ansy, and your system's own privacy terms cover it.
+
 ## Questions
 
 Open an issue at https://github.com/SlikkDev/Ansy/issues, or report a
