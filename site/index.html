@@ -46,7 +46,9 @@
     "alternateName": "אָנְסִי",
     "description": "A free, open-source desktop browser that lets business owners experience their own website the way people with disabilities do, including the assistive tools they use.",
     "applicationCategory": "DeveloperApplication",
-    "operatingSystem": "macOS, Windows",
+    "operatingSystem": "macOS, Windows, Linux",
+    "softwareVersion": "2.0.0",
+    "downloadUrl": "https://github.com/SlikkDev/Ansy/releases/tag/v2.0.0",
     "license": "https://opensource.org/licenses/MIT",
     "isAccessibleForFree": true,
     "url": "https://slikkdev.github.io/Ansy/",
@@ -88,6 +90,7 @@
           <li><a href="#try">Try it</a></li>
           <li><a href="#experiences">Experiences</a></li>
           <li><a href="#how">How it works</a></li>
+          <li><a href="#download">Download</a></li>
           <li><a href="#faq">FAQ</a></li>
         </ul>
         <a class="lang-link" href="he/" hreflang="he" lang="he">עברית</a>
@@ -107,14 +110,14 @@
         <h1 id="hero-title">Your website looks great. <span class="accent">To you.</span></h1>
         <p class="lede">Ansy is a free desktop browser that lets you experience your own site the way people with low vision, colour blindness, motor, hearing or attention difficulties do. It brings the tools they rely on too, like screen readers, zoom and keyboard-only navigation. Spot what breaks, then hand your developer a clear report.</p>
         <div class="actions">
-          <span class="status-pill"><span class="status-dot" aria-hidden="true"></span>Downloads coming soon</span>
-          <a class="btn btn-primary" href="https://github.com/SlikkDev/Ansy">
+          <span class="status-pill"><span class="status-dot" aria-hidden="true"></span>Version 2.0.0 is available</span>
+          <a class="btn btn-primary" href="#download">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.26 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
-            Follow the build on GitHub
+            Download Ansy
           </a>
           <a class="btn btn-ghost" href="#try">Try the idea in 10 seconds</a>
         </div>
-        <p class="hero-note">For macOS and Windows. In English and Hebrew. Free, for good.</p>
+        <p class="hero-note">For macOS, Windows and Linux. In English and Hebrew. Free, for good.</p>
       </div>
     </section>
 
@@ -406,7 +409,7 @@
           <div class="fact"><dt>₪0 / $0</dt><dd>No price, no trial, no "pro" tier.</dd></div>
           <div class="fact"><dt>MIT</dt><dd>Read it, fork it, ship it inside your own tools.</dd></div>
           <div class="fact"><dt>EN + <span lang="he">עב</span></dt><dd>English and Hebrew from day one, with full right-to-left support.</dd></div>
-          <div class="fact"><dt>macOS + Windows</dt><dd>A desktop app built on Electron, so every experience runs on a real browser engine.</dd></div>
+          <div class="fact"><dt>macOS + Windows + Linux</dt><dd>A desktop app built on Electron, so every experience runs on a real browser engine.</dd></div>
         </dl>
 
         <h3 class="group-title">Roadmap</h3>
@@ -428,8 +431,8 @@
           </li>
           <li class="now">
             <span class="when">Next</span>
-            <h4>Downloads</h4>
-            <p>Signed builds for macOS, and Windows through the Microsoft Store. They will appear on this page.</p>
+            <h4>Signing and the Microsoft Store</h4>
+            <p>Direct downloads are available now. Signed macOS and Windows builds, and a Microsoft Store listing, are still to come.</p>
           </li>
           <li>
             <span class="when">Later</span>
@@ -437,6 +440,45 @@
             <p>More interface languages, such as Arabic, and a companion browser extension.</p>
           </li>
         </ol>
+      </div>
+    </section>
+
+    <section class="section" id="download" aria-labelledby="download-title">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Version 2.0.0 · 29 October 2026</span>
+          <h2 id="download-title">Download Ansy.</h2>
+          <p class="lede">Choose your system. Free, with no account to create. These first macOS and Windows downloads are unsigned; read the installation notes below.</p>
+        </div>
+        <ul class="grid" role="list">
+          <li class="card">
+            <h3>macOS</h3>
+            <p>Choose Apple silicon for an M-series Mac, or Intel for an Intel Mac.</p>
+            <div class="actions">
+              <a class="btn btn-ghost" href="https://github.com/SlikkDev/Ansy/releases/download/v2.0.0/Ansy-2.0.0-arm64.dmg">Mac: Apple silicon (.dmg)</a>
+              <a class="btn btn-ghost" href="https://github.com/SlikkDev/Ansy/releases/download/v2.0.0/Ansy-2.0.0.dmg">Mac: Intel (.dmg)</a>
+            </div>
+            <p>The app is not signed or notarized by Apple, so macOS may block it from opening. Automatic updates are unavailable in this build; download future versions here.</p>
+          </li>
+          <li class="card">
+            <h3>Windows</h3>
+            <p>The direct installer for Windows on Intel and AMD PCs (x64).</p>
+            <div class="actions">
+              <a class="btn btn-ghost" href="https://github.com/SlikkDev/Ansy/releases/download/v2.0.0/Ansy-Setup-2.0.0.exe">Windows installer (.exe)</a>
+            </div>
+            <p>This installer is unsigned. If SmartScreen shows "Windows protected your PC", choose "More info", then "Run anyway" to install it. A Microsoft Store version is not available yet.</p>
+          </li>
+          <li class="card">
+            <h3>Linux</h3>
+            <p>For Intel and AMD PCs (x64). Choose AppImage, or the .deb package for Debian and Ubuntu.</p>
+            <div class="actions">
+              <a class="btn btn-ghost" href="https://github.com/SlikkDev/Ansy/releases/download/v2.0.0/Ansy-2.0.0.AppImage">Linux AppImage</a>
+              <a class="btn btn-ghost" href="https://github.com/SlikkDev/Ansy/releases/download/v2.0.0/ansy_2.0.0_amd64.deb">Linux Debian / Ubuntu (.deb)</a>
+            </div>
+            <p>Make the AppImage executable before opening it. For .deb installations, download and install each new version by hand.</p>
+          </li>
+        </ul>
+        <p><a href="https://github.com/SlikkDev/Ansy/releases/tag/v2.0.0">Release notes and all files on GitHub</a> · <a href="https://github.com/SlikkDev/Ansy#code-signing-policy">Code signing policy</a></p>
       </div>
     </section>
 
@@ -477,7 +519,7 @@
           </details>
           <details>
             <summary>When can I download it?</summary>
-            <div class="answer"><p>Soon. To hear the moment it ships, open <a href="https://github.com/SlikkDev/Ansy">the GitHub repository</a>, choose Watch, then Custom, then Releases.</p></div>
+            <div class="answer"><p>Now. <a href="#download">Download version 2.0.0</a> for macOS, Windows or Linux. To hear about new versions, open <a href="https://github.com/SlikkDev/Ansy">the GitHub repository</a>, choose Watch, then Custom, then Releases.</p></div>
           </details>
         </div>
       </div>
@@ -486,9 +528,9 @@
     <section class="wrap" aria-labelledby="cta-title">
       <div class="cta-band">
         <h2 id="cta-title">Be first to see what your customers see.</h2>
-        <p>Ansy 2.0 is built, in public, and its downloads are on their way. Watch the repository to get the release the day it lands, or jump in with ideas and code.</p>
+        <p>Ansy 2.0 is ready to download. Open your site, try an experience, and turn what you find into a clear report for your developer.</p>
         <div class="actions">
-          <a class="btn btn-primary" href="https://github.com/SlikkDev/Ansy">Watch Ansy on GitHub</a>
+          <a class="btn btn-primary" href="#download">Download Ansy</a>
           <a class="btn btn-ghost" href="https://github.com/SlikkDev/Ansy/issues">Suggest an idea</a>
         </div>
       </div>
