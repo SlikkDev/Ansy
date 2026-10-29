@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { UpdateStatus } from '../../src/shared/update'
+import { version } from '../../package.json'
 import { launchAnsy, noViolations, type Harness } from './harness'
 
 // The real updater only runs in a packaged build, so the tests feed the
@@ -17,7 +18,7 @@ test('About Ansy holds the update switch, the status and the privacy note', asyn
   const { page } = h
   await page.getByRole('button', { name: 'About Ansy' }).click()
   const dialog = page.getByRole('dialog', { name: 'About Ansy' })
-  await expect(dialog.getByText('Version 1.0.0')).toBeVisible()
+  await expect(dialog.getByText(`Version ${version}`)).toBeVisible()
   const box = dialog.getByRole('checkbox', { name: 'Check for updates when Ansy starts' })
   await expect(box).toBeChecked()
   // A development build cannot update itself: the status says so and there is nothing to check.

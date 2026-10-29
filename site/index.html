@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ansy: experience your website the way disabled customers do</title>
-  <meta name="description" content="Ansy is a free, open-source desktop browser that lets business owners experience their own website with low vision, colour blindness, keyboard-only use, no sound and more, plus the screen readers and zoom people rely on. By Slikk.Dev.">
+  <meta name="description" content="Ansy is a free, open-source desktop browser that lets business owners experience their own website with low vision, colour blindness, tremor, dyslexia, keyboard-only use, voice control, no sound and more, plus the screen readers and zoom people rely on. By Slikk.Dev.">
   <link rel="canonical" href="https://slikkdev.github.io/Ansy/">
   <link rel="alternate" hreflang="en" href="https://slikkdev.github.io/Ansy/">
   <link rel="alternate" hreflang="he" href="https://slikkdev.github.io/Ansy/he/">
@@ -202,13 +202,13 @@
     <section class="section" id="experiences" aria-labelledby="exp-title">
       <div class="wrap">
         <div class="section-head">
-          <span class="eyebrow">Version 1.0</span>
-          <h2 id="exp-title">Ten experiences. One switch each.</h2>
-          <p class="lede">Each experience changes how your site looks, sounds or responds, so you can feel the barrier yourself. Where people use a tool to cope, Ansy gives you that tool too.</p>
+          <span class="eyebrow">Version 2.0</span>
+          <h2 id="exp-title">Nineteen experiences. One switch each.</h2>
+          <p class="lede">Each experience changes how your site looks, sounds or responds, so you can feel the barrier yourself. Where people use a tool to cope, Ansy gives you that tool too. The few that can only give a rough impression say so, and name the tool that person really uses.</p>
         </div>
 
         <div class="group">
-          <h3 class="group-title">Vision</h3>
+          <h3 class="group-title">Sight and blindness</h3>
           <ul class="grid" role="list">
             <li class="card">
               <h4>Colour blindness</h4>
@@ -219,10 +219,28 @@
               <p>See which text, icons and buttons stop being readable long before your designer would notice.</p>
             </li>
             <li class="card">
+              <span class="kicker">A rough impression</span>
+              <h4>Tunnel and central vision loss</h4>
+              <p>Everything goes dark but a small circle around the mouse and the keyboard focus, or a grey patch covers the spot you look at. Can you still find the cart?</p>
+              <span class="tool">Tool: screen magnifier</span>
+            </li>
+            <li class="card">
+              <span class="kicker">A rough impression</span>
+              <h4>Cataracts and glare</h4>
+              <p>A cloudy, yellowed veil, or a screen flooded with sunlight. Pale grey text is the first thing to go.</p>
+              <span class="tool">Tool: high contrast and zoom</span>
+            </li>
+            <li class="card">
               <h4>Screen reader</h4>
               <p>Hear your page read aloud the way blind customers hear it, and move by headings, links and buttons.</p>
               <span class="tool">Tool: screen reader</span>
             </li>
+          </ul>
+        </div>
+
+        <div class="group">
+          <h3 class="group-title">Low vision and light sensitivity</h3>
+          <ul class="grid" role="list">
             <li class="card">
               <h4>Zoom to 200% and 400%</h4>
               <p>Blow the page up the way people with low vision do. Does the layout reflow, or does the checkout button fall off the screen?</p>
@@ -238,32 +256,81 @@
               <p>Force the system's high-contrast colours, like Windows contrast themes do. Find the icons and buttons that disappear.</p>
               <span class="tool">Tool: contrast themes</span>
             </li>
+            <li class="card">
+              <h4>Dark mode</h4>
+              <p>Tell your site the visitor prefers dark, as people with light sensitivity do. Does it have a dark theme, and does anything vanish when it is darkened anyway?</p>
+              <span class="tool">Tool: system setting</span>
+            </li>
           </ul>
         </div>
 
         <div class="group">
-          <h3 class="group-title">Movement, hearing and more</h3>
+          <h3 class="group-title">Moving and clicking</h3>
           <ul class="grid" role="list">
             <li class="card">
-              <span class="kicker">Movement</span>
               <h4>Keyboard only</h4>
               <p>Put the mouse away, like people with tremors or limited hand movement often do. See where focus goes, and where it gets lost.</p>
               <span class="tool">Tool: keyboard</span>
             </li>
             <li class="card">
-              <span class="kicker">Hearing</span>
+              <span class="kicker">A rough impression</span>
+              <h4>Tremor and unsteady hands</h4>
+              <p>The pointer shakes, and a click lands wherever the shake carries it. Ansy also flags buttons smaller than 24 pixels.</p>
+              <span class="tool">Tool: keyboard and bigger targets</span>
+            </li>
+            <li class="card">
+              <h4>Switch access</h4>
+              <p>A highlight steps through your controls by itself and one key picks, as a single-switch user does. Count the steps your checkout takes.</p>
+              <span class="tool">Tool: switch device</span>
+            </li>
+            <li class="card">
+              <h4>Voice control</h4>
+              <p>Type or dictate "click Buy now". When a button shows one name and is called another, the command misses, and Ansy shows you why.</p>
+              <span class="tool">Tool: voice control</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="group">
+          <h3 class="group-title">Hearing</h3>
+          <ul class="grid" role="list">
+            <li class="card">
               <h4>No sound</h4>
               <p>Mute everything and check your videos. Is there a caption for every word that matters?</p>
               <span class="tool">Tool: captions</span>
             </li>
+          </ul>
+        </div>
+
+        <div class="group">
+          <h3 class="group-title">Focus and reading</h3>
+          <ul class="grid" role="list">
             <li class="card">
-              <span class="kicker">Motion sensitivity</span>
               <h4>Reduced motion</h4>
               <p>Turn on the setting people use when animation makes them dizzy or distracted, and see whether your site respects it.</p>
               <span class="tool">Tool: system setting</span>
             </li>
             <li class="card">
-              <span class="kicker">Every page</span>
+              <h4>Dyslexia and reading aids</h4>
+              <p>A readable font, wider spacing, a line ruler and read-aloud: the tools people use. Watch for text the new font cuts off.</p>
+              <span class="tool">Tool: reading tools</span>
+            </li>
+            <li class="card">
+              <h4>Plain language</h4>
+              <p>A reading score for every page, with the hardest paragraphs ringed. A standard formula in English, a rough measure in Hebrew.</p>
+            </li>
+            <li class="card">
+              <span class="kicker">A rough impression</span>
+              <h4>Seizure risk from flashing</h4>
+              <p>Ansy watches your page and counts flashes. More than three in a second can trigger a seizure, so it tells you where.</p>
+            </li>
+          </ul>
+        </div>
+
+        <div class="group">
+          <h3 class="group-title">For every visitor</h3>
+          <ul class="grid" role="list">
+            <li class="card">
               <h4>Automated check</h4>
               <p>A scan that flags common problems and names the WCAG rule behind each, so your developer knows exactly what you mean.</p>
               <span class="tool">Engine: axe-core</span>
@@ -294,7 +361,7 @@
           </li>
           <li>
             <h3>Hand it over, then re-test</h3>
-            <p>Export a PDF or plain-text report for whoever builds your site. When they say it's fixed, check again in the same spot.</p>
+            <p>Export a PDF or plain-text report for whoever builds your site. When they say it's fixed, check again: for a keyboard or screen reader problem, Ansy presses the same keys again and tells you whether it's gone.</p>
           </li>
         </ol>
       </div>
@@ -349,20 +416,25 @@
             <h4>Research and plan</h4>
             <p>Which experiences matter most, what tools people actually use, and what a non-technical owner needs to act on a finding.</p>
           </li>
-          <li class="now">
-            <span class="when">Now</span>
-            <h4>Building 1.0</h4>
-            <p>The browser, the ten experiences, guided tasks, findings and reports, and the built-in screen reader. Every step lands as a public pull request.</p>
+          <li class="done">
+            <span class="when">Done</span>
+            <h4>1.0</h4>
+            <p>The browser, ten experiences, guided tasks, findings and reports, and the built-in screen reader. Every step landed as a public pull request.</p>
           </li>
-          <li>
+          <li class="done">
+            <span class="when">Done</span>
+            <h4>2.0</h4>
+            <p>Nineteen experiences, every one the research called for, from switch access and voice control to reading aids and flash detection, and re-tests that press your keys again.</p>
+          </li>
+          <li class="now">
             <span class="when">Next</span>
             <h4>Downloads</h4>
             <p>Signed builds for macOS, and Windows through the Microsoft Store. They will appear on this page.</p>
           </li>
           <li>
             <span class="when">Later</span>
-            <h4>More experiences</h4>
-            <p>More disabilities and more of the tools people use to cope, plus a companion browser extension.</p>
+            <h4>More languages, and an extension</h4>
+            <p>More interface languages, such as Arabic, and a companion browser extension.</p>
           </li>
         </ol>
       </div>
@@ -414,7 +486,7 @@
     <section class="wrap" aria-labelledby="cta-title">
       <div class="cta-band">
         <h2 id="cta-title">Be first to see what your customers see.</h2>
-        <p>Ansy 1.0 is being built in public right now. Watch the repository to get the release the day it lands, or jump in with ideas and code.</p>
+        <p>Ansy 2.0 is built, in public, and its downloads are on their way. Watch the repository to get the release the day it lands, or jump in with ideas and code.</p>
         <div class="actions">
           <a class="btn btn-primary" href="https://github.com/SlikkDev/Ansy">Watch Ansy on GitHub</a>
           <a class="btn btn-ghost" href="https://github.com/SlikkDev/Ansy/issues">Suggest an idea</a>
