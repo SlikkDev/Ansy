@@ -55,7 +55,7 @@ test('Ansy Reader reads the shop in order, jumps by kind, and shows every word i
   await h.page.getByRole('button', { name: 'Turn on' }).click()
   await expect(h.page.getByRole('status')).toHaveText('Ansy Reader (screen reader) is on')
   await expect(lastLine()).toHaveText(
-    'Sample shop. Page loaded. Headings: 1. Links: 3. Form fields: 6. Landmarks: 1.',
+    'Sample shop. Page loaded. Headings: 1. Links: 4. Form fields: 6. Landmarks: 1.',
   )
   // A bare container has no voice; the card says so and keeps the transcript.
   await expect(h.page.getByText(/^No English voice is installed/)).toBeVisible()

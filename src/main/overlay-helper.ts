@@ -2,8 +2,8 @@ import type { OverlayKind } from '../shared/experiences'
 
 /**
  * The overlay helper paints an impression over the site: a narrowed field of
- * view that follows the mouse and the keyboard focus, or a veil over the whole
- * page. It runs inside the site, in an isolated world the site's scripts cannot
+ * view that follows the mouse and the keyboard focus, a veil over the whole
+ * page, or a reading ruler that follows the line being read. It runs inside the site, in an isolated world the site's scripts cannot
  * see, draws one element that takes no clicks, and changes nothing else. It is
  * shipped as source text, so it must stay self-contained: no imports, nothing
  * from outside its own body.
@@ -42,6 +42,11 @@ export function overlayHelper(kind: OverlayKind): OverlayKind {
       style = `background:radial-gradient(${at},transparent 0,transparent ${r}px,rgba(0,0,0,.97) ${Math.round(r * 1.7)}px);`
     } else if (current === 'central') {
       style = `background:radial-gradient(${at},rgba(96,96,96,.97) 0,rgba(96,96,96,.9) ${r}px,transparent ${Math.round(r * 1.8)}px);`
+    } else if (current === 'ruler') {
+      // A reading ruler: a clear band two lines high, the rest of the page dimmed.
+      const top = Math.round(y - 24)
+      const bottom = Math.round(y + 24)
+      style = `background:linear-gradient(to bottom,rgba(0,0,0,.55) 0,rgba(0,0,0,.55) ${top}px,transparent ${top}px,transparent ${bottom}px,rgba(0,0,0,.55) ${bottom}px);`
     } else if (current === 'cataract') {
       style =
         'background:rgba(255,244,214,.22);-webkit-backdrop-filter:blur(2px) contrast(.65) brightness(1.08) sepia(.35);backdrop-filter:blur(2px) contrast(.65) brightness(1.08) sepia(.35);'
@@ -53,7 +58,7 @@ export function overlayHelper(kind: OverlayKind): OverlayKind {
     layer.setAttribute('style', base + style + display)
   }
 
-  const follows = () => current === 'tunnel' || current === 'central'
+  const follows = () => current === 'tunnel' || current === 'central' || current === 'ruler'
   const schedule = () => {
     if (!frame) frame = requestAnimationFrame(paint)
   }

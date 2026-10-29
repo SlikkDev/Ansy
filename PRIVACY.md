@@ -61,6 +61,13 @@ Ansy Reader speaks through the voices installed on your computer, using the
 system's own speech engine. The text it reads is the page's accessibility
 tree, which stays on the computer.
 
+## Reading aloud and the flash watcher
+
+The reading aids read the text you select through the same system voices.
+The flash watcher looks at small copies of the page's frames as they are
+drawn, counts brightness changes and keeps nothing: no frame is saved or
+sent anywhere.
+
 ## Voice control
 
 Ansy has no microphone access and records no audio. Voice control reads only

@@ -40,6 +40,21 @@ All notable changes to Ansy are recorded here. The format follows
 - The practice shop has a button that shows "Add to basket" and is named
   "Purchase item", for voice control to miss.
 
+- Dyslexia and reading aids: a readable font, the WCAG 1.4.12 spacing and a
+  line-focus ruler, each on its own switch, and read-aloud of the text you
+  select with the system's voice. Text the new font or spacing cuts off is
+  listed and can be saved as a finding (WCAG 1.4.12).
+- Plain language: a reading score for the page, the Flesch-Kincaid grade in
+  English and a rough level from sentence and word length in Hebrew, marked as
+  rough, with the hardest paragraphs ringed on the page (WCAG 3.1.5).
+- Seizure risk from flashing: Ansy watches the page's frames and counts flashes
+  in every second over large areas, names where it flashes when there are more
+  than three (WCAG 2.3.1), and can save that as a finding. A rough check.
+- Findings of a new kind, "check", for what Ansy's own page checks find.
+- The practice shop has a label that the reading aids cut off, a paragraph of
+  legal words, and a flashing sale banner on a page of its own, which plays
+  only when asked and stops after three seconds.
+
 ### Fixed
 
 - Switch access no longer loses the count of a pick that opens a new page.

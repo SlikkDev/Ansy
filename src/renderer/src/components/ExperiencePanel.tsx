@@ -20,6 +20,7 @@ import type { SiteState } from '../../../shared/ipc'
 import { useT, type T } from '../lib/i18n'
 import { switchSpeeds } from '../../../shared/motor'
 import { KeyboardFindings, ScanResults, SwitchFindings, VoiceCommands } from './Findings'
+import { FlashingCard, PlainLanguageCard, ReadingAidsCard } from './CognitiveCards'
 import { ReaderCard } from './ReaderCard'
 
 interface Props {
@@ -271,6 +272,12 @@ function ExperienceCard({
         </section>
       )}
 
+      {isActive && id === 'readingAids' && report && <ReadingAidsCard report={report.reading} />}
+      {isActive && id === 'plainLanguage' && report && (
+        <PlainLanguageCard report={report.plainLanguage} />
+      )}
+      {isActive && id === 'flashing' && report && <FlashingCard report={report.flashing} />}
+
       {isActive && id === 'voiceControl' && report?.voice && (
         <VoiceCommands mismatches={report.voice.mismatches} platform={platform} />
       )}
@@ -442,6 +449,28 @@ function Options({
                 onChange={() => onChange({ switchSpeed: speed })}
               />
               {t(`exp.switchAccess.speed.${speed}` as MessageKey)}
+            </label>
+          ))}
+        </fieldset>
+      )
+    case 'readingAids':
+      return (
+        <fieldset>
+          <legend className={heading}>{t('panel.options')}</legend>
+          {(
+            [
+              ['readingFont', 'exp.readingAids.font'],
+              ['readingSpacing', 'exp.readingAids.spacing'],
+              ['readingRuler', 'exp.readingAids.ruler'],
+            ] as const
+          ).map(([key, label]) => (
+            <label key={key} className="flex items-center gap-2 py-0.5">
+              <input
+                type="checkbox"
+                checked={state[key]}
+                onChange={(e) => onChange({ [key]: e.target.checked })}
+              />
+              {t(label)}
             </label>
           ))}
         </fieldset>

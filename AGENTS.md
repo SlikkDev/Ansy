@@ -55,7 +55,7 @@ code, made by its developer.
 src/
   main/      Electron main process: window, site view, security, settings, menu, IPC,
              the experience engine (DevTools switches), the in-page helpers
-             (observe, keyboard trail, vision overlay, switch scanning, tremor, voice control, axe scan, highlight,
+             (observe, keyboard trail, vision overlay, switch scanning, tremor, voice control, reading checks, axe scan, highlight,
              check again) shipped as
              source text, Ansy Reader's engine (the accessibility tree over the
              DevTools protocol, the virtual cursor, the keys), the practice shop
@@ -64,7 +64,8 @@ src/
   preload/   contextBridge API for Ansy's own screens (sandboxed; no Node)
   renderer/  Ansy's screens: React 19 + Tailwind 4, strict TypeScript
   shared/    types, the experience and task tables, the findings model, the report
-             builders, the reader's pure parts (reading order, findings, speech)
+             builders, the reader's pure parts (reading order, findings, speech),
+             the voice command parser, the reading score and the flash counter
              and the i18n string tables, used by main and renderer
 tests/
   unit/      Vitest

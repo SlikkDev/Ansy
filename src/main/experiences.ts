@@ -1,4 +1,4 @@
-import type { Input, WebContents } from 'electron'
+import { nativeImage, type Input, type WebContents } from 'electron'
 import {
   COVER_CSS,
   defaultExperienceState,
@@ -10,6 +10,18 @@ import {
   type Observations,
   type SiteSwitches,
 } from '../shared/experiences'
+import {
+  emptyFlashReport,
+  FLASH_LIMIT,
+  FlashCounter,
+  isReadingReport,
+  isTextBlocks,
+  lumaGrid,
+  scoreText,
+  type FlashReport,
+  type PlainLanguageReport,
+  type ReadingReport,
+} from '../shared/cognitive'
 import {
   keyboardRules,
   type Finding,
@@ -57,6 +69,16 @@ import {
 } from './motor-helpers'
 import { observeSource } from './observe'
 import { overlayHideSource, overlaySource, overlayUninstallSource } from './overlay-helper'
+import {
+  clippedTextSource,
+  elementAtSource,
+  READABLE_FONT_CSS,
+  ringsHideSource,
+  ringsSource,
+  ringsUninstallSource,
+  selectionSource,
+  textBlocksSource,
+} from './reading-helper'
 import { Reader } from './reader'
 import { checkFocusableSource } from './retest'
 import { isRawScan, runAxe, runAxeOn } from './scan'
@@ -83,14 +105,19 @@ const KEYBOARD_POLL = 400
 const MOTOR_POLL = 400
 
 /** The style sheets Ansy inserts into the page, by what they do. */
-type Sheet = 'spacing' | 'mouse' | 'cover' | 'cursor'
+type Sheet = 'spacing' | 'mouse' | 'cover' | 'cursor' | 'font'
 
 const noSheets = (): Record<Sheet, string | null> => ({
   spacing: null,
   mouse: null,
   cover: null,
   cursor: null,
+  font: null,
 })
+
+/** The flash watcher's frames: small, since only large areas count, and a grid over them. */
+const FLASH_FRAME = { maxWidth: 320, maxHeight: 240 }
+const FLASH_GRID = { cols: 32, rows: 24 }
 
 /**
  * Applies an ExperienceState to the site view. Every switch that changes how
@@ -109,6 +136,11 @@ export class ExperienceEngine {
   private switchCarry = { steps: 0, picks: 0 }
   private tremor: TremorReport | null = null
   private voiceReport: VoiceReport | null = null
+  private reading: ReadingReport | null = null
+  private plain: { score: PlainLanguageReport | null } | null = null
+  private flashCounter = new FlashCounter()
+  private flashReport: FlashReport | null = null
+  private cognitiveTimer: ReturnType<typeof setTimeout> | null = null
   /** A scan is due or under way; the card says so. */
   private scanning = false
   private running = false
@@ -136,6 +168,9 @@ export class ExperienceEngine {
     contents.on('dom-ready', () => void this.reapplyAfterLoad())
     // A pick that opens a page would be lost with the old page before the next poll; read it now.
     contents.on('console-message', (details) => this.onConsole(details.message))
+    contents.debugger.on('message', (_event, method, params) => {
+      if (method === 'Page.screencastFrame') void this.onFrame(params as ScreencastFrame)
+    })
     contents.once('destroyed', () => this.dispose())
   }
 
@@ -151,6 +186,9 @@ export class ExperienceEngine {
       },
       tremor: this.tremor,
       voice: this.voiceReport,
+      reading: this.reading,
+      plainLanguage: this.plain,
+      flashing: this.flashReport,
       scan: this.scan,
       scanning: this.scanning,
       reader: this.applied.reader ? this.reader.getReport() : null,
@@ -217,6 +255,12 @@ export class ExperienceEngine {
     return result
   }
 
+  /** The text selected in the site, for reading aloud. Empty when there is none. */
+  async selection(): Promise<string> {
+    const text = await this.runInWorld<unknown>(selectionSource)
+    return typeof text === 'string' ? text : ''
+  }
+
   /**
    * Lifts the screen cover and any overlay for the duration of `task`, e.g. a
    * screenshot, and puts them back: the developer needs the page, not the impression.
@@ -224,7 +268,9 @@ export class ExperienceEngine {
   async uncovered<T>(task: () => Promise<T>): Promise<T> {
     const overlay = this.applied.overlay !== null
     const voice = this.applied.voice
-    if (!this.sheets.cover && !overlay && !voice) return task()
+    const rings = this.applied.plainLanguage
+    if (!this.sheets.cover && !overlay && !voice && !rings) return task()
+    if (rings) await this.runInWorld(ringsHideSource(true))
     if (this.sheets.cover) await this.applySheet('cover', COVER_CSS, false)
     if (overlay) await this.runInWorld(overlayHideSource(true))
     if (voice) await this.runInWorld(voiceHideSource(true))
@@ -235,6 +281,7 @@ export class ExperienceEngine {
       if (this.applied.cover) await this.applySheet('cover', COVER_CSS, true)
       if (this.applied.overlay) await this.runInWorld(overlayHideSource(false))
       if (this.applied.voice) await this.runInWorld(voiceHideSource(false))
+      if (this.applied.plainLanguage) await this.runInWorld(ringsHideSource(false))
     }
   }
 
@@ -356,12 +403,31 @@ export class ExperienceEngine {
       this.voiceReport = want.voice ? { ...emptyVoiceReport } : null
       tasks.push(this.runInWorld(want.voice ? voiceHelperSource : voiceUninstallSource))
     }
+    if (want.readableFont !== was.readableFont) {
+      tasks.push(this.applySheet('font', READABLE_FONT_CSS, want.readableFont))
+    }
+    let cognitive = false
+    if (
+      want.readingCheck !== was.readingCheck ||
+      (want.readingCheck &&
+        (want.readableFont !== was.readableFont || want.textSpacingCss !== was.textSpacingCss))
+    ) {
+      this.reading = want.readingCheck ? { clipped: [] } : null
+      cognitive = want.readingCheck
+    }
+    if (want.plainLanguage !== was.plainLanguage) {
+      this.plain = null
+      if (want.plainLanguage) cognitive = true
+      else tasks.push(this.runInWorld(ringsUninstallSource))
+    }
+    if (want.flashes !== was.flashes) tasks.push(this.applyFlashWatch(want.flashes))
     if (want.zoomFactor !== was.zoomFactor) this.contents.setZoomFactor(want.zoomFactor)
     if (want.muted !== was.muted) this.contents.setAudioMuted(want.muted)
 
     await Promise.all(tasks)
     this.report()
     if (want.observe) this.scheduleObserve(generation)
+    if (cognitive) this.scheduleCognitive(generation)
   }
 
   private async reapplyAfterNavigation(): Promise<void> {
@@ -377,6 +443,7 @@ export class ExperienceEngine {
     this.sheets = noSheets()
     if (want.textSpacingCss) await this.applySheet('spacing', TEXT_SPACING_CSS, true)
     if (want.mouseOff) await this.applySheet('mouse', MOUSE_OFF_CSS, true)
+    if (want.readableFont) await this.applySheet('font', READABLE_FONT_CSS, true)
     if (want.cover) await this.applySheet('cover', COVER_CSS, true)
     if (want.overlay) await this.runInWorld(overlaySource(want.overlay))
     if (want.tremor) {
@@ -400,6 +467,14 @@ export class ExperienceEngine {
       this.voiceReport = { ...emptyVoiceReport }
       await this.runInWorld(voiceHelperSource)
     }
+    if (want.readingCheck) this.reading = { clipped: [] }
+    if (want.plainLanguage) this.plain = null
+    if (want.readingCheck || want.plainLanguage) this.scheduleCognitive(this.generation)
+    if (want.flashes) {
+      // Flashing belongs to the page it was seen on.
+      this.flashCounter.reset()
+      this.flashReport = { ...emptyFlashReport }
+    }
     if (want.reader) this.reader.pageLoaded()
     if (want.keyboard) {
       await this.runInWorld(keyboardHelperSource)
@@ -413,7 +488,18 @@ export class ExperienceEngine {
       this.scan = null
       this.scheduleScan()
     }
-    if (want.keyboard || want.observe || want.scan || want.switchAccess || want.voice) this.report()
+    if (
+      want.keyboard ||
+      want.observe ||
+      want.scan ||
+      want.switchAccess ||
+      want.voice ||
+      want.readingCheck ||
+      want.plainLanguage ||
+      want.flashes
+    ) {
+      this.report()
+    }
   }
 
   private async applySheet(sheet: Sheet, css: string, on: boolean): Promise<void> {
@@ -601,6 +687,70 @@ export class ExperienceEngine {
     this.report()
   }
 
+  private scheduleCognitive(generation: number): void {
+    if (this.cognitiveTimer) clearTimeout(this.cognitiveTimer)
+    this.cognitiveTimer = setTimeout(() => {
+      this.cognitiveTimer = null
+      void this.runCognitive(generation)
+    }, OBSERVE_DELAY)
+  }
+
+  /** Looks for clipped text and scores the page's text, unless the state moved on. */
+  private async runCognitive(generation: number): Promise<void> {
+    if (this.applied.readingCheck) {
+      const clipped = await this.runInWorld<unknown>(clippedTextSource)
+      if (generation !== this.generation || !this.applied.readingCheck) return
+      const report = { clipped }
+      this.reading = isReadingReport(report) ? report : { clipped: [] }
+    }
+    if (this.applied.plainLanguage) {
+      const blocks = await this.runInWorld<unknown>(textBlocksSource)
+      if (generation !== this.generation || !this.applied.plainLanguage) return
+      const score = isTextBlocks(blocks) ? scoreText(blocks) : null
+      this.plain = { score }
+      await this.runInWorld(ringsSource(score?.hardest.map((h) => h.target) ?? []))
+    }
+    this.report()
+  }
+
+  /** Starts or stops the page's frame stream, which the flash counter reads. */
+  private async applyFlashWatch(on: boolean): Promise<void> {
+    this.flashCounter.reset()
+    if (on) {
+      this.flashReport = { ...emptyFlashReport }
+      await this.send('Page.startScreencast', { format: 'jpeg', quality: 50, ...FLASH_FRAME })
+    } else {
+      this.flashReport = null
+      await this.send('Page.stopScreencast', {})
+    }
+  }
+
+  /** One frame of the stream: acknowledged so the next comes, then counted. */
+  private async onFrame(frame: ScreencastFrame): Promise<void> {
+    void this.send('Page.screencastFrameAck', { sessionId: frame.sessionId })
+    if (!this.applied.flashes || !this.flashReport) return
+    const image = nativeImage.createFromBuffer(Buffer.from(frame.data, 'base64'))
+    const { width, height } = image.getSize()
+    if (!width || !height) return
+    const luma = lumaGrid(image.toBitmap(), width, height, FLASH_GRID.cols, FLASH_GRID.rows)
+    const at = (frame.metadata.timestamp ?? Date.now() / 1000) * 1000
+    const worse = this.flashCounter.push({ at, ...FLASH_GRID, luma })
+    const counted = this.flashCounter.report
+    if (worse && counted.worst > FLASH_LIMIT && counted.region) {
+      const { x, y, width: w, height: h } = counted.region
+      const element = await this.runInWorld<unknown>(elementAtSource(x + w / 2, y + h / 2))
+      if (!this.applied.flashes) return
+      this.flashReport = {
+        ...counted,
+        element: isFinding(element) ? element : (this.flashReport?.element ?? null),
+      }
+      this.report()
+    } else if (worse || counted.frames % 25 === 0) {
+      this.flashReport = { ...counted, element: this.flashReport.element }
+      this.report()
+    }
+  }
+
   private scheduleObserve(generation: number): void {
     if (this.observeTimer) clearTimeout(this.observeTimer)
     this.observeTimer = setTimeout(() => {
@@ -647,12 +797,29 @@ export class ExperienceEngine {
     if (this.scanTimer) clearTimeout(this.scanTimer)
     if (this.keyboardTimer) clearInterval(this.keyboardTimer)
     if (this.motorTimer) clearInterval(this.motorTimer)
+    if (this.cognitiveTimer) clearTimeout(this.cognitiveTimer)
     this.motorTimer = null
+    this.cognitiveTimer = null
     this.observeTimer = null
     this.scanTimer = null
     this.keyboardTimer = null
     void this.reader.stop()
   }
+}
+
+interface ScreencastFrame {
+  data: string
+  sessionId: number
+  metadata: { timestamp?: number }
+}
+
+function isFinding(value: unknown): value is { label: string; target: string } {
+  return (
+    !!value &&
+    typeof value === 'object' &&
+    typeof (value as { label: unknown }).label === 'string' &&
+    typeof (value as { target: unknown }).target === 'string'
+  )
 }
 
 function isObservations(value: unknown): value is Observations {

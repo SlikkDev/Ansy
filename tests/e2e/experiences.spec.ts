@@ -454,6 +454,81 @@ test('voice control clicks by name, numbers what it can, and catches a name that
   await h.openShop()
 })
 
+test('reading aids change the font and spacing, show the clipped label, and read the selection', async () => {
+  await card('Dyslexia and reading aids').click()
+  await turnOn().click()
+  await expect
+    .poll(() => inSite<string>('getComputedStyle(document.querySelector("h1")).fontFamily'))
+    .toContain('Verdana')
+  await expect
+    .poll(() =>
+      inSite<string>('document.querySelector("[data-ansy-overlay]")?.getAttribute("style") ?? ""'),
+    )
+    .toContain('linear-gradient')
+  await expect(page.getByText('Text cut off by the new font or spacing')).toBeVisible({
+    timeout: 10_000,
+  })
+  await expect(page.getByText('span “Free returns within 30 days”')).toBeVisible()
+  await noViolations('reading aids card')
+
+  await page.getByRole('button', { name: 'Read the selected text' }).click()
+  await expect(page.getByText('Select some text on the page first.')).toBeVisible()
+  await inSite('getSelection().selectAllChildren(document.querySelector("h1")), true')
+  await page.getByRole('button', { name: 'Read the selected text' }).click()
+  await expect(page.locator('p.card', { hasText: 'Sample shop' })).toBeVisible()
+
+  await page.getByRole('checkbox', { name: /Line-focus ruler/ }).uncheck()
+  await expect
+    .poll(() => inSite<boolean>('!!document.querySelector("[data-ansy-overlay]")'))
+    .toBe(false)
+  await turnOff().click()
+  await expect
+    .poll(() => inSite<string>('getComputedStyle(document.querySelector("h1")).fontFamily'))
+    .not.toContain('Verdana')
+})
+
+test('plain language scores the page the same on every load and rings the hardest paragraph', async () => {
+  await card('Plain language').click()
+  await turnOn().click()
+  const counts = page.getByText(/^Words: \d+\. Sentences: \d+\./)
+  await expect(counts).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByText(/^Flesch-Kincaid grade [\d.]+\./)).toBeVisible()
+  await expect(page.getByText(/p “Notwithstanding any provision to the/)).toBeVisible()
+  await expect
+    .poll(() => inSite<number>('document.querySelectorAll("[data-ansy-rings] > div").length'))
+    .toBe(1)
+  await noViolations('plain language card')
+  const first = await counts.textContent()
+
+  await page.getByRole('button', { name: 'Reload' }).click()
+  await expect(counts).toHaveText(first ?? '', { timeout: 10_000 })
+  await expect
+    .poll(() => inSite<number>('document.querySelectorAll("[data-ansy-rings] > div").length'))
+    .toBe(1)
+  await turnOff().click()
+  await expect
+    .poll(() => inSite<boolean>('!!document.querySelector("[data-ansy-rings]")'))
+    .toBe(false)
+})
+
+test('the flash watcher catches the practice banner flashing four times a second', async () => {
+  await inSite('location.href = "flash.html"')
+  await expect.poll(() => inSite<string>('document.title')).toBe('Summer sale')
+  await card('Seizure risk from flashing').click()
+  await expect(page.getByText(/If flashing affects you, don’t use this one/)).toBeVisible()
+  await turnOn().click()
+  await expect(page.getByText(/^No flashing yet/)).toBeVisible()
+  await inSite('document.getElementById("play").click()')
+  await expect(page.getByText(/That is over the limit of three\.$/)).toBeVisible({
+    timeout: 10_000,
+  })
+  await expect(page.getByText('Where it flashes')).toBeVisible()
+  await expect(page.getByText('div “Summer sale banner”')).toBeVisible()
+  await noViolations('flashing card')
+  await turnOff().click()
+  await h.openShop()
+})
+
 test('the cards read in Hebrew too', async () => {
   await page.getByRole('button', { name: 'עברית' }).click()
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')

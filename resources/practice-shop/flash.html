@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Summer sale</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 2rem;
+        color: #222;
+        background: #fff;
+      }
+      .warning {
+        border: 2px solid #c62828;
+        padding: 0.6rem 1rem;
+        max-width: 36rem;
+      }
+      #banner {
+        width: 320px;
+        height: 200px;
+        margin-top: 1rem;
+        display: grid;
+        place-items: center;
+        font-size: 1.6rem;
+        font-weight: 700;
+        background: #fff;
+        color: #222;
+        border: 1px solid #222;
+      }
+      #banner.dark {
+        background: #000;
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <header><a href="index.html">Sample shop</a></header>
+    <main>
+      <h1>Summer sale</h1>
+      <p class="warning">
+        <strong>Seizure warning.</strong> The banner below flashes four times a second for three
+        seconds, more than WCAG allows, so the seizure risk experience has something to catch. Don’t
+        play it if flashing affects you.
+      </p>
+      <button type="button" id="play">Play the flashing banner</button>
+      <div id="banner" role="img" aria-label="Summer sale banner">SALE</div>
+    </main>
+    <script>
+      // Only on request, and never for long: this exists to be caught, not to be watched.
+      document.getElementById('play').addEventListener('click', () => {
+        const banner = document.getElementById('banner')
+        let flips = 0
+        const timer = setInterval(() => {
+          banner.classList.toggle('dark')
+          flips += 1
+          if (flips >= 24) {
+            clearInterval(timer)
+            banner.classList.remove('dark')
+          }
+        }, 125)
+      })
+    </script>
+  </body>
+</html>

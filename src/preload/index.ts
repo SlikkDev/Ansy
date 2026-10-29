@@ -62,6 +62,8 @@ export const ansy = {
     scan: (): Promise<ExperienceReport | null> => ipcRenderer.invoke(channels.expScan),
     show: (target: string): Promise<boolean> => ipcRenderer.invoke(channels.expShow, target),
     resetKeyboard: (): Promise<void> => ipcRenderer.invoke(channels.expKeyboardReset),
+    /** The text selected in the site, for reading aloud. */
+    selection: (): Promise<string> => ipcRenderer.invoke(channels.expSelection),
     /** Runs a voice control command, typed or dictated, on the site. */
     voice: (command: string): Promise<VoiceResult | null> =>
       ipcRenderer.invoke(channels.expVoice, command),

@@ -58,6 +58,9 @@ export const en = {
   'exp.tremor': 'Tremor and unsteady hands',
   'exp.switchAccess': 'Switch access',
   'exp.voiceControl': 'Voice control',
+  'exp.readingAids': 'Dyslexia and reading aids',
+  'exp.plainLanguage': 'Plain language',
+  'exp.flashing': 'Seizure risk from flashing',
 
   'area.vision': 'Sight and blindness',
   'area.lowVision': 'Low vision and light sensitivity',
@@ -451,6 +454,62 @@ export const en = {
   'exp.voiceControl.result.noPage': 'There is no page to give the command to.',
   'exp.voiceControl.missed': 'Shows one name, answers to another',
   'exp.voiceControl.shows': 'Shows “{visible}”, named “{name}”',
+
+  'exp.readingAids.what':
+    'Ansy sets the page the way many people with dyslexia set their own browser: a plainer font, more space between letters, words and lines, and a ruler that dims everything but the line being read. It can also read the text you select aloud. It changes what you see, as their own setting would, and nothing on the site.',
+  'exp.readingAids.look':
+    'Text cut off or overlapping once the font or spacing changes.\nButtons and menus whose labels no longer fit.\nWalls of text with no headings to rest on.',
+  'exp.readingAids.fidelity':
+    'These are the tools people with dyslexia really use. How easy the text then is to read differs from person to person; Ansy shows no jumbled letters, because that isn’t what dyslexia is.',
+  'exp.readingAids.font': 'Readable font',
+  'exp.readingAids.spacing': 'Wider spacing (the WCAG 1.4.12 values)',
+  'exp.readingAids.ruler': 'Line-focus ruler that follows the mouse',
+  'exp.readingAids.hint': 'Move the mouse down the page and read through the ruler’s clear band.',
+  'exp.readingAids.readAloud': 'Read aloud',
+  'exp.readingAids.read': 'Read the selected text',
+  'exp.readingAids.stop': 'Stop',
+  'exp.readingAids.noSelection': 'Select some text on the page first.',
+  'exp.readingAids.noVoice':
+    'No voice for this language is installed, so here is the text instead.',
+  'exp.readingAids.clipped': 'Text cut off by the new font or spacing',
+  'exp.readingAids.noClipped': 'No text was cut off by the new font or spacing.',
+
+  'exp.plainLanguage.what':
+    'Ansy scores how hard the page’s text is to read and rings the hardest paragraphs. People with a learning disability, ADHD, a brain injury, or a language that isn’t their first, read short sentences and common words far more easily.',
+  'exp.plainLanguage.look':
+    'Sentences that run past twenty words.\nLong words where a short one would do.\nInstructions and errors that only make sense on a second read.',
+  'exp.plainLanguage.fidelity':
+    'English pages get the Flesch-Kincaid grade, a standard formula. Hebrew has no accepted formula, so Hebrew pages get a rough level from sentence and word length, marked as rough. Either way it measures length, not meaning.',
+  'exp.plainLanguage.scoring': 'Reading the page…',
+  'exp.plainLanguage.tooLittle': 'There is too little running text on this page to score.',
+  'exp.plainLanguage.rough': 'Rough measure',
+  'exp.plainLanguage.level.easy': 'Easy to read',
+  'exp.plainLanguage.level.plain': 'Plain enough',
+  'exp.plainLanguage.level.hard': 'Hard to read',
+  'exp.plainLanguage.level.veryHard': 'Very hard to read',
+  'exp.plainLanguage.grade':
+    'Flesch-Kincaid grade {grade}. WCAG 3.1.5 (level AAA) asks for about grade 9, the end of lower secondary school.',
+  'exp.plainLanguage.hebrew':
+    'Worked out from sentence and word length only, since Hebrew has no standard formula.',
+  'exp.plainLanguage.counts':
+    'Words: {words}. Sentences: {sentences}. Words per sentence: {sentenceLength}. Letters per word: {wordLength}.',
+  'exp.plainLanguage.hardest': 'The hardest paragraphs, ringed on the page',
+  'exp.plainLanguage.perSentence': '{count} words a sentence',
+  'exp.plainLanguage.noHardest': 'No paragraph stands out as hard.',
+
+  'exp.flashing.what':
+    'Ansy watches the page as it plays and counts flashes in every second. More than three flashes a second over a large area can cause seizures in people with photosensitive epilepsy, and migraines in many more.',
+  'exp.flashing.look':
+    'Sale banners and buttons that blink.\nVideos with strobe effects or fast cuts between light and dark.\nCarousels that switch bright slides quickly.',
+  'exp.flashing.fidelity':
+    'A rough check: it counts changes in brightness over large areas, as WCAG 2.3.1 defines them, but not red flashes, and only what plays while you watch. If flashing affects you, don’t use this one; Ansy watches the page but can’t stop it.',
+  'exp.flashing.watching': 'Frames looked at so far: {frames}.',
+  'exp.flashing.none': 'No flashing yet. Play the page’s videos and animations while this runs.',
+  'exp.flashing.under':
+    'The fastest flashing so far: {count} in a second, within the limit of three.',
+  'exp.flashing.over':
+    'The fastest flashing so far: {count} in a second. That is over the limit of three.',
+  'exp.flashing.where': 'Where it flashes',
 
   'exp.scan.what':
     'Ansy runs axe-core, the checker behind Lighthouse and most accessibility tools, on the page as it is right now, and explains each result in plain words. Automatic checks catch roughly a third of the barriers; the other experiences are for the rest.',
