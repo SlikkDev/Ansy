@@ -46,7 +46,7 @@ export function ReaderCard({ report, platform }: { report: ReaderReport; platfor
       </p>
 
       <section>
-        <h3 className={heading}>{t('exp.reader.current')}</h3>
+        <h4 className={heading}>{t('exp.reader.current')}</h4>
         <p className="text-base font-medium" dir="auto" data-reader-current>
           {report.current ? itemSpeech(report.current, t) : t('exp.reader.nothing')}
         </p>
@@ -148,7 +148,7 @@ function Transcript({ report }: { report: ReaderReport }) {
   return (
     <section>
       <div className="mb-1 flex items-center justify-between gap-2">
-        <h3 className={heading}>{t('exp.reader.transcript')}</h3>
+        <h4 className={heading}>{t('exp.reader.transcript')}</h4>
         <button type="button" className="btn-link text-xs" disabled={!count} onClick={reader.clear}>
           {t('exp.reader.clear')}
         </button>
@@ -197,7 +197,7 @@ function ReaderFindings({ findings }: { findings: ReaderFinding[] }) {
   if (!findings.length) return null
   return (
     <section>
-      <h3 className={heading}>{t('panel.noticed')}</h3>
+      <h4 className={heading}>{t('panel.noticed')}</h4>
       <ul className="list-disc ps-5" aria-live="polite">
         {findings.map((finding, i) => {
           const rule = readerRuleFor(finding.rule, t)

@@ -11,37 +11,58 @@ import type { ScanResult } from './scan'
 export type ExperienceId =
   | 'colorBlindness'
   | 'blurLowContrast'
+  | 'tunnelVision'
+  | 'haze'
   | 'reader'
   | 'zoom'
   | 'largeText'
   | 'highContrast'
+  | 'darkMode'
   | 'keyboard'
   | 'noSound'
   | 'motion'
   | 'scan'
 
-/** How close the experience is to what that person really gets. Explained on each card. */
-export type Fidelity = 'high' | 'medium'
+/**
+ * How close the experience is to what that person really gets. Explained on each card.
+ * Low is an impression only: its card says so and points to the tool that person uses.
+ */
+export type Fidelity = 'high' | 'medium' | 'low'
+
+/** The panel's groups, in the order it shows them. */
+export const experienceAreas = [
+  'vision',
+  'lowVision',
+  'motor',
+  'hearing',
+  'cognitive',
+  'check',
+] as const
+export type ExperienceArea = (typeof experienceAreas)[number]
 
 export interface ExperienceInfo {
   id: ExperienceId
+  area: ExperienceArea
   fidelity: Fidelity
-  /** Switched on from the panel. All ten are; the flag stays for the next experience in the making. */
+  /** Switched on from the panel. All are; the flag stays for the next experience in the making. */
   available: boolean
 }
 
-/** In the order the plan lists them, which is the order of the panel. */
+/** Grouped by area, in the order of the panel. */
 export const experiences: readonly ExperienceInfo[] = [
-  { id: 'colorBlindness', fidelity: 'high', available: true },
-  { id: 'blurLowContrast', fidelity: 'medium', available: true },
-  { id: 'reader', fidelity: 'medium', available: true },
-  { id: 'zoom', fidelity: 'high', available: true },
-  { id: 'largeText', fidelity: 'high', available: true },
-  { id: 'highContrast', fidelity: 'high', available: true },
-  { id: 'keyboard', fidelity: 'high', available: true },
-  { id: 'noSound', fidelity: 'medium', available: true },
-  { id: 'motion', fidelity: 'high', available: true },
-  { id: 'scan', fidelity: 'high', available: true },
+  { id: 'colorBlindness', area: 'vision', fidelity: 'high', available: true },
+  { id: 'blurLowContrast', area: 'vision', fidelity: 'medium', available: true },
+  { id: 'tunnelVision', area: 'vision', fidelity: 'low', available: true },
+  { id: 'haze', area: 'vision', fidelity: 'low', available: true },
+  { id: 'reader', area: 'vision', fidelity: 'medium', available: true },
+  { id: 'zoom', area: 'lowVision', fidelity: 'high', available: true },
+  { id: 'largeText', area: 'lowVision', fidelity: 'high', available: true },
+  { id: 'highContrast', area: 'lowVision', fidelity: 'high', available: true },
+  { id: 'darkMode', area: 'lowVision', fidelity: 'high', available: true },
+  { id: 'keyboard', area: 'motor', fidelity: 'high', available: true },
+  { id: 'noSound', area: 'hearing', fidelity: 'medium', available: true },
+  { id: 'motion', area: 'cognitive', fidelity: 'high', available: true },
+  { id: 'scan', area: 'check', fidelity: 'high', available: true },
 ]
 
 export const experienceIds: readonly ExperienceId[] = experiences.map((e) => e.id)
@@ -59,6 +80,17 @@ export type VisionMode = (typeof visionModes)[number]
 export const blurModes = ['blurredVision', 'reducedContrast'] as const
 export type BlurMode = (typeof blurModes)[number]
 
+/** Loss of the visual field: only the middle left (tunnel), or the middle gone (central). */
+export const fieldModes = ['tunnel', 'central'] as const
+export type FieldMode = (typeof fieldModes)[number]
+
+/** A veil over the whole view: clouded lenses, or light flooding the screen. */
+export const hazeModes = ['cataract', 'glare'] as const
+export type HazeMode = (typeof hazeModes)[number]
+
+/** What the overlay helper paints over the site. */
+export type OverlayKind = FieldMode | HazeMode
+
 export const zoomLevels = [2, 4] as const
 export type ZoomLevel = (typeof zoomLevels)[number]
 
@@ -75,6 +107,8 @@ export interface ExperienceState {
   active: ExperienceId | null
   vision: VisionMode
   blur: BlurMode
+  field: FieldMode
+  haze: HazeMode
   zoom: ZoomLevel
   /** A 320 CSS-pixel-wide view, the narrowest WCAG asks a page to reflow to. */
   narrow: boolean
@@ -82,6 +116,8 @@ export interface ExperienceState {
   textSize: boolean
   /** The WCAG 1.4.12 text-spacing override. */
   textSpacing: boolean
+  /** Dark mode: darken sites that have no dark theme of their own, as Chrome's auto dark mode does. */
+  darkForce: boolean
   /** Keyboard only: take the mouse away as well as drawing the trail. */
   mouseOff: boolean
   /** Ansy Reader: say it aloud, not only in the transcript. */
@@ -95,10 +131,13 @@ export const defaultExperienceState: ExperienceState = {
   active: null,
   vision: 'deuteranopia',
   blur: 'blurredVision',
+  field: 'tunnel',
+  haze: 'cataract',
   zoom: 2,
   narrow: false,
   textSize: true,
   textSpacing: true,
+  darkForce: false,
   mouseOff: true,
   readerVoice: true,
   readerRate: 'normal',
@@ -117,6 +156,8 @@ export interface Observations {
   mediaWithoutCaptions: number
   /** Players from YouTube, Vimeo and the like, whose captions must be checked by hand. */
   embeddedPlayers: number
+  /** The page's own background is dark, so it answers the dark preference. */
+  darkBackground: boolean
 }
 
 /** The state plus whatever the helpers found on the current page, pushed to Ansy's screens. */
@@ -148,7 +189,11 @@ export interface SiteSwitches {
   zoomFactor: number
   narrow: boolean
   muted: boolean
-  observe: 'motion' | 'sound' | null
+  observe: 'motion' | 'sound' | 'dark' | null
+  /** Chromium's automatic dark mode, which darkens pages that have no dark theme. */
+  autoDark: boolean
+  /** An impression painted over the site: a narrowed field, or a veil. */
+  overlay: OverlayKind | null
   /** The keyboard helper: focus ring, trail and findings. */
   keyboard: boolean
   /** No pointer, no hover, no clicks. */
@@ -171,6 +216,8 @@ export function switchesFor(state: ExperienceState): SiteSwitches {
     narrow: false,
     muted: false,
     observe: null,
+    autoDark: false,
+    overlay: null,
     keyboard: false,
     mouseOff: false,
     scan: false,
@@ -182,6 +229,10 @@ export function switchesFor(state: ExperienceState): SiteSwitches {
       return { ...off, visionDeficiency: state.vision }
     case 'blurLowContrast':
       return { ...off, visionDeficiency: state.blur }
+    case 'tunnelVision':
+      return { ...off, overlay: state.field }
+    case 'haze':
+      return { ...off, overlay: state.haze }
     case 'zoom':
       return { ...off, zoomFactor: state.narrow ? 1 : state.zoom, narrow: state.narrow }
     case 'largeText':
@@ -197,6 +248,13 @@ export function switchesFor(state: ExperienceState): SiteSwitches {
           { name: 'forced-colors', value: 'active' },
           { name: 'prefers-contrast', value: 'more' },
         ],
+      }
+    case 'darkMode':
+      return {
+        ...off,
+        mediaFeatures: [{ name: 'prefers-color-scheme', value: 'dark' }],
+        autoDark: state.darkForce,
+        observe: 'dark',
       }
     case 'keyboard':
       return { ...off, keyboard: true, mouseOff: state.mouseOff }
@@ -260,10 +318,17 @@ export function sanitizeExperiencePatch(current: ExperienceState, raw: unknown):
   if (typeof r.blur === 'string' && (blurModes as readonly string[]).includes(r.blur)) {
     next.blur = r.blur as BlurMode
   }
+  if (typeof r.field === 'string' && (fieldModes as readonly string[]).includes(r.field)) {
+    next.field = r.field as FieldMode
+  }
+  if (typeof r.haze === 'string' && (hazeModes as readonly string[]).includes(r.haze)) {
+    next.haze = r.haze as HazeMode
+  }
   if (r.zoom === 2 || r.zoom === 4) next.zoom = r.zoom
   if (typeof r.narrow === 'boolean') next.narrow = r.narrow
   if (typeof r.textSize === 'boolean') next.textSize = r.textSize
   if (typeof r.textSpacing === 'boolean') next.textSpacing = r.textSpacing
+  if (typeof r.darkForce === 'boolean') next.darkForce = r.darkForce
   if (typeof r.mouseOff === 'boolean') next.mouseOff = r.mouseOff
   if (typeof r.readerVoice === 'boolean') next.readerVoice = r.readerVoice
   if (

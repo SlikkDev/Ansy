@@ -52,6 +52,16 @@ export const en = {
   'exp.noSound': 'No sound',
   'exp.motion': 'Motion sensitivity',
   'exp.scan': 'Automatic scan',
+  'exp.tunnelVision': 'Tunnel and central vision loss',
+  'exp.haze': 'Cataracts and glare',
+  'exp.darkMode': 'Dark mode',
+
+  'area.vision': 'Sight and blindness',
+  'area.lowVision': 'Low vision and light sensitivity',
+  'area.motor': 'Moving and clicking',
+  'area.hearing': 'Hearing',
+  'area.cognitive': 'Focus and reading',
+  'area.check': 'For every visitor',
 
   'settings.title': 'Settings',
   'settings.language': 'Language',
@@ -127,6 +137,7 @@ export const en = {
   'fidelity.label': 'Fidelity',
   'fidelity.high': 'Close to the real thing',
   'fidelity.medium': 'An approximation',
+  'fidelity.low': 'A rough impression',
 
   'exp.colorBlindness.what':
     'Ansy repaints your site the way Chrome’s own simulation does for the type of color blindness you pick. About 1 in 12 men and 1 in 200 women see color this way.',
@@ -148,6 +159,26 @@ export const en = {
   'exp.blurLowContrast.mode': 'Kind',
   'exp.blur.blurredVision': 'Blurred vision',
   'exp.blur.reducedContrast': 'Low contrast',
+
+  'exp.tunnelVision.what':
+    'Ansy blacks out all but a small circle around the mouse and the keyboard focus, the way glaucoma or retinitis pigmentosa narrows the view. Or the opposite: a grey patch wherever the eye looks, as with macular degeneration, the most common cause of low vision in older people.',
+  'exp.tunnelVision.look':
+    'The cart, the menu or the search, far from where you are looking.\nError messages that appear somewhere else on the page than the field.\nPop-ups and notices at the edge of the screen that nobody sees.',
+  'exp.tunnelVision.fidelity':
+    'Real field loss differs from person to person, and people who live with it learn to scan. Many use a screen magnifier; try Zoom to 400% for the tool itself.',
+  'exp.tunnelVision.mode': 'Kind',
+  'exp.field.tunnel': 'Tunnel vision: only the middle is left (glaucoma, retinitis pigmentosa)',
+  'exp.field.central': 'Central loss: the middle is gone (macular degeneration)',
+
+  'exp.haze.what':
+    'Ansy lays a veil over your site: the cloudy, yellowed view of a cataract, or a screen flooded with sunlight. Both drain contrast, and that is where faint design fails first.',
+  'exp.haze.look':
+    'Light grey text, thin fonts and placeholder text that disappear.\nButtons and fields whose edges fade into the background.\nText laid over photos.',
+  'exp.haze.fidelity':
+    'Only the loss of contrast, roughly. The tools people reach for are high contrast, dark mode and larger text, each one in this list.',
+  'exp.haze.mode': 'Kind',
+  'exp.haze.cataract': 'Cataracts: cloudy and yellowed',
+  'exp.haze.glare': 'Glare: bright sun on the screen',
 
   'exp.zoom.what':
     'Ansy zooms your site the way a browser does, or shows it 320 pixels wide, the narrowest width a page must still work at.',
@@ -174,6 +205,18 @@ export const en = {
     'Buttons, links or fields that vanished.\nText baked into images, which stays exactly as it was.\nStates told by color only: which tab is open, which field has an error.',
   'exp.highContrast.fidelity':
     'Chromium’s forced-colors mode, the same engine behind Windows contrast themes.',
+
+  'exp.darkMode.what':
+    'Ansy tells your site the visitor prefers dark mode, as a phone or computer set to dark does. People with light sensitivity, migraines and some kinds of low vision rely on it. Sites with a dark theme switch to it; the rest stay bright.',
+  'exp.darkMode.look':
+    'A page that stays bright white.\nText, icons or logos that vanish against a dark background.\nImages and charts with white boxes around them.',
+  'exp.darkMode.fidelity':
+    'The same dark preference the operating system sends; the darkening option is Chrome’s own auto dark mode.',
+  'exp.darkMode.force': 'Also darken sites that have no dark theme',
+  'exp.darkMode.forceHint':
+    'Like Chrome’s auto dark mode or a dark-mode extension, which many light-sensitive visitors use.',
+  'exp.darkMode.has': 'The site switched to a dark theme',
+  'exp.darkMode.none': 'The site stayed light: it has no dark theme of its own',
 
   'exp.motion.what':
     'Ansy tells your site the visitor asked for less motion, then counts what keeps moving. Motion can bring on dizziness, nausea or a migraine.',

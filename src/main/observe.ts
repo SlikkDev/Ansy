@@ -60,12 +60,41 @@ export function observePage(): Observations {
     }
   }
 
+  // Is the page dark? Its own background first; with none, the canvas, which turns
+  // dark only when the page declares a dark color scheme and the visitor asks for one.
+  const rgb = (color: string): number[] | null => {
+    const match = /rgba?\(([^)]+)\)/.exec(color)
+    if (!match) return null
+    const parts = (match[1] ?? '')
+      .split(/[\s,/]+/)
+      .filter(Boolean)
+      .map(Number)
+    if (parts.length > 3 && !parts[3]) return null
+    return parts.slice(0, 3)
+  }
+  let background: number[] | null = null
+  for (const el of [document.body, document.documentElement]) {
+    if (el && !background) background = rgb(getComputedStyle(el).backgroundColor)
+  }
+  let darkBackground: boolean
+  if (background) {
+    const [r = 255, g = 255, b = 255] = background
+    darkBackground = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 < 0.35
+  } else {
+    const scheme = getComputedStyle(document.documentElement).colorScheme || ''
+    darkBackground =
+      /dark/.test(scheme) &&
+      typeof matchMedia === 'function' &&
+      matchMedia('(prefers-color-scheme: dark)').matches
+  }
+
   return {
     animations,
     autoplay,
     media: mediaElements.length,
     mediaWithoutCaptions,
     embeddedPlayers,
+    darkBackground,
   }
 }
 

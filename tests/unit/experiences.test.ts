@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   defaultExperienceState,
+  experienceAreas,
   experiences,
   sanitizeExperiencePatch,
   switchesFor,
@@ -25,6 +26,8 @@ describe('switchesFor', () => {
       narrow: false,
       muted: false,
       observe: null,
+      autoDark: false,
+      overlay: null,
       keyboard: false,
       mouseOff: false,
       scan: false,
@@ -40,6 +43,26 @@ describe('switchesFor', () => {
     expect(
       switchesFor(on({ active: 'blurLowContrast', blur: 'reducedContrast' })).visionDeficiency,
     ).toBe('reducedContrast')
+  })
+
+  it('paints an overlay for the field and haze impressions, and nothing else', () => {
+    expect(switchesFor(on({ active: 'tunnelVision' }))).toEqual({
+      ...switchesFor(defaultExperienceState),
+      overlay: 'tunnel',
+    })
+    expect(switchesFor(on({ active: 'tunnelVision', field: 'central' })).overlay).toBe('central')
+    expect(switchesFor(on({ active: 'haze', haze: 'glare' })).overlay).toBe('glare')
+    expect(switchesFor(on({ active: 'zoom', field: 'central' })).overlay).toBeNull()
+  })
+
+  it('asks for dark mode, and darkens sites without one only when asked', () => {
+    expect(switchesFor(on({ active: 'darkMode' }))).toMatchObject({
+      mediaFeatures: [{ name: 'prefers-color-scheme', value: 'dark' }],
+      autoDark: false,
+      observe: 'dark',
+    })
+    expect(switchesFor(on({ active: 'darkMode', darkForce: true })).autoDark).toBe(true)
+    expect(switchesFor(on({ active: 'zoom', darkForce: true })).autoDark).toBe(false)
   })
 
   it('zooms, or narrows instead of zooming', () => {
@@ -118,6 +141,18 @@ describe('sanitizeExperiencePatch', () => {
     )
   })
 
+  it('keeps the new options only when valid', () => {
+    const next = sanitizeExperiencePatch(defaultExperienceState, {
+      field: 'central',
+      haze: 'glare',
+      darkForce: true,
+    })
+    expect(next).toMatchObject({ field: 'central', haze: 'glare', darkForce: true })
+    expect(
+      sanitizeExperiencePatch(next, { field: 'peripheral', haze: 'fog', darkForce: 'yes' }),
+    ).toEqual(next)
+  })
+
   it('refuses experiences that are not available yet', () => {
     expect(
       sanitizeExperiencePatch(defaultExperienceState, { active: 'telepathy' }).active,
@@ -128,6 +163,18 @@ describe('sanitizeExperiencePatch', () => {
   it('ignores junk', () => {
     expect(sanitizeExperiencePatch(defaultExperienceState, null)).toEqual(defaultExperienceState)
     expect(sanitizeExperiencePatch(defaultExperienceState, 'zoom')).toEqual(defaultExperienceState)
+  })
+})
+
+describe('the panel table', () => {
+  it('puts every experience in an area, and every Low one says it is an impression', () => {
+    const lows = experiences.filter((e) => e.fidelity === 'low').map((e) => e.id)
+    expect(lows).toEqual(['tunnelVision', 'haze'])
+    expect(en['fidelity.low']).toBe('A rough impression')
+    for (const area of experienceAreas) {
+      expect(experiences.some((e) => e.area === area)).toBe(true)
+      expect(en).toHaveProperty(`area.${area}`)
+    }
   })
 })
 

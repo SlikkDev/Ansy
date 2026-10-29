@@ -20,6 +20,7 @@ describe('observePage', () => {
       media: 4,
       mediaWithoutCaptions: 2,
       embeddedPlayers: 3,
+      darkBackground: false,
     })
   })
 
@@ -31,7 +32,17 @@ describe('observePage', () => {
       media: 0,
       mediaWithoutCaptions: 0,
       embeddedPlayers: 0,
+      darkBackground: false,
     })
+  })
+
+  it('tells a dark page from a light one by its background', () => {
+    document.body.innerHTML = '<p>Hello</p>'
+    document.body.style.backgroundColor = 'rgb(18, 18, 18)'
+    expect(observePage().darkBackground).toBe(true)
+    document.body.style.backgroundColor = 'rgb(250, 250, 250)'
+    expect(observePage().darkBackground).toBe(false)
+    document.body.style.backgroundColor = ''
   })
 
   it('ships as self-contained source text', () => {

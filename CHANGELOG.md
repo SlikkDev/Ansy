@@ -8,6 +8,26 @@ All notable changes to Ansy are recorded here. The format follows
 
 ### Added
 
+- The experiences panel grouped by area: sight and blindness, low vision and
+  light sensitivity, moving and clicking, hearing, focus and reading, and the
+  automatic scan for every visitor.
+- A third fidelity level, "A rough impression", for the experiences that can
+  only suggest what a person meets. Each such card names the tool that person
+  uses.
+- Tunnel and central vision loss: everything but a small circle around the
+  mouse and the keyboard focus goes dark, or a grey patch covers the spot the
+  eye looks at. A rough impression.
+- Cataracts and glare: a cloudy, yellowed veil or a sun-flooded screen over the
+  site. A rough impression. Screenshots for findings are taken without the
+  veil, so the developer sees the page.
+- Dark mode: the site is told the visitor prefers dark, Ansy says whether it has
+  a dark theme of its own, and an option darkens sites that don't, as Chrome's
+  auto dark mode does.
+
+## 1.0.0
+
+### Added
+
 - Self-updates for direct downloads: Ansy checks GitHub Releases when it
   starts (About Ansy has the switch, and the Help menu a "Check for updates"
   item), downloads a newer version in the background and offers a restart.
