@@ -15,7 +15,10 @@ export interface TaskInfo {
 }
 
 export const tasks: readonly TaskInfo[] = [
-  { id: 'contact', experiences: ['reader', 'keyboard', 'zoom', 'blurLowContrast', 'scan'] },
+  {
+    id: 'contact',
+    experiences: ['reader', 'keyboard', 'zoom', 'tunnelVision', 'blurLowContrast', 'scan'],
+  },
   { id: 'form', experiences: ['keyboard', 'reader', 'largeText', 'highContrast', 'scan'] },
   { id: 'purchase', experiences: ['reader', 'keyboard', 'colorBlindness', 'zoom', 'motion'] },
 ]

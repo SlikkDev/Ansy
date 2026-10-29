@@ -1,11 +1,15 @@
 import { useId, useState, type ReactNode } from 'react'
 import {
   blurModes,
+  experienceAreas,
   experienceInfo,
   experiences,
+  fieldModes,
+  hazeModes,
   readerRates,
   visionModes,
   zoomLevels,
+  type ExperienceArea,
   type ExperienceId,
   type ExperienceReport,
   type ExperienceState,
@@ -34,9 +38,16 @@ const textKey = (id: ExperienceId, part: 'what' | 'look' | 'fidelity') =>
 
 const heading = 'mb-1 text-xs font-semibold uppercase tracking-wide text-ink-soft'
 
+const fidelityKey = {
+  high: 'fidelity.high',
+  medium: 'fidelity.medium',
+  low: 'fidelity.low',
+} as const
+
 /**
- * The experiences, each a task card: what changes, what to look for, how close
- * it is to the real thing, and the switch. One experience runs at a time.
+ * The experiences, grouped by area, each a task card: what changes, what to
+ * look for, how close it is to the real thing, and the switch. One experience
+ * runs at a time.
  */
 export function ExperiencePanel({ report, site, platform, onChange, onScan, onClearTrail }: Props) {
   const t = useT()
@@ -63,36 +74,55 @@ export function ExperiencePanel({ report, site, platform, onChange, onScan, onCl
         {t('panel.title')}
       </h2>
       <p className="mb-4 text-sm text-ink-soft">{t('panel.intro')}</p>
-      <ul className="flex flex-col gap-2">
-        {experiences.map((info) => (
-          <ExperienceRow
-            key={info.id}
-            id={info.id}
-            isOpen={open === info.id}
-            isActive={active === info.id}
-            onToggleOpen={() => setOpen(open === info.id ? null : info.id)}
-          >
-            {info.available ? (
-              <ExperienceCard
-                id={info.id}
-                report={report}
-                isActive={active === info.id}
-                siteOpen={site.open && !site.error}
-                platform={platform}
-                onChange={onChange}
-                onScan={onScan}
-                onClearTrail={onClearTrail}
-              />
-            ) : (
-              <p className="text-sm text-ink-soft">{t(textKey(info.id, 'what'))}</p>
-            )}
-          </ExperienceRow>
+      <div className="flex flex-col gap-4">
+        {experienceAreas.map((area) => (
+          <AreaGroup key={area} area={area}>
+            {experiences
+              .filter((info) => info.area === area)
+              .map((info) => (
+                <ExperienceRow
+                  key={info.id}
+                  id={info.id}
+                  isOpen={open === info.id}
+                  isActive={active === info.id}
+                  onToggleOpen={() => setOpen(open === info.id ? null : info.id)}
+                >
+                  {info.available ? (
+                    <ExperienceCard
+                      id={info.id}
+                      report={report}
+                      isActive={active === info.id}
+                      siteOpen={site.open && !site.error}
+                      platform={platform}
+                      onChange={onChange}
+                      onScan={onScan}
+                      onClearTrail={onClearTrail}
+                    />
+                  ) : (
+                    <p className="text-sm text-ink-soft">{t(textKey(info.id, 'what'))}</p>
+                  )}
+                </ExperienceRow>
+              ))}
+          </AreaGroup>
         ))}
-      </ul>
+      </div>
       <p className="visually-hidden" role="status">
         {announcement}
       </p>
     </div>
+  )
+}
+
+function AreaGroup({ area, children }: { area: ExperienceArea; children: ReactNode }) {
+  const t = useT()
+  const id = useId()
+  return (
+    <section aria-labelledby={id}>
+      <h3 id={id} className={heading}>
+        {t(`area.${area}` as MessageKey)}
+      </h3>
+      <ul className="flex flex-col gap-2">{children}</ul>
+    </section>
   )
 }
 
@@ -162,14 +192,14 @@ function ExperienceCard({
   return (
     <div className="flex flex-col gap-3 text-sm">
       <section>
-        <h3 className={heading}>{t('panel.whatHappens')}</h3>
+        <h4 className={heading}>{t('panel.whatHappens')}</h4>
         <p>{t(textKey(id, 'what'))}</p>
       </section>
 
       {state && <Options id={id} state={state} onChange={onChange} />}
 
       <section>
-        <h3 className={heading}>{t('panel.lookFor')}</h3>
+        <h4 className={heading}>{t('panel.lookFor')}</h4>
         <ul className="list-disc ps-5">
           {lookFor.map((line) => (
             <li key={line}>{line}</li>
@@ -178,9 +208,7 @@ function ExperienceCard({
       </section>
 
       <p className="text-ink-soft">
-        <span className="badge me-2">
-          {t(fidelity === 'high' ? 'fidelity.high' : 'fidelity.medium')}
-        </span>
+        <span className="badge me-2">{t(fidelityKey[fidelity])}</span>
         {t(textKey(id, 'fidelity'))}
       </p>
 
@@ -207,9 +235,9 @@ function ExperienceCard({
       </div>
       {!siteOpen && !isActive && <p className="text-xs text-ink-soft">{t('panel.noSite')}</p>}
 
-      {isActive && (id === 'motion' || id === 'noSound') && (
+      {isActive && (id === 'motion' || id === 'noSound' || id === 'darkMode') && (
         <section aria-live="polite">
-          <h3 className={heading}>{t('panel.noticed')}</h3>
+          <h4 className={heading}>{t('panel.noticed')}</h4>
           <Noticed id={id} observations={report?.observations ?? null} t={t} />
         </section>
       )}
@@ -276,6 +304,55 @@ function Options({
               {t(`exp.blur.${mode}` as MessageKey)}
             </label>
           ))}
+        </fieldset>
+      )
+    case 'tunnelVision':
+      return (
+        <fieldset>
+          <legend className={heading}>{t('exp.tunnelVision.mode')}</legend>
+          {fieldModes.map((mode) => (
+            <label key={mode} className="flex items-center gap-2 py-0.5">
+              <input
+                type="radio"
+                name={group}
+                checked={state.field === mode}
+                onChange={() => onChange({ field: mode })}
+              />
+              {t(`exp.field.${mode}` as MessageKey)}
+            </label>
+          ))}
+        </fieldset>
+      )
+    case 'haze':
+      return (
+        <fieldset>
+          <legend className={heading}>{t('exp.haze.mode')}</legend>
+          {hazeModes.map((mode) => (
+            <label key={mode} className="flex items-center gap-2 py-0.5">
+              <input
+                type="radio"
+                name={group}
+                checked={state.haze === mode}
+                onChange={() => onChange({ haze: mode })}
+              />
+              {t(`exp.haze.${mode}` as MessageKey)}
+            </label>
+          ))}
+        </fieldset>
+      )
+    case 'darkMode':
+      return (
+        <fieldset>
+          <legend className={heading}>{t('panel.options')}</legend>
+          <label className="flex items-center gap-2 py-0.5">
+            <input
+              type="checkbox"
+              checked={state.darkForce}
+              onChange={(e) => onChange({ darkForce: e.target.checked })}
+            />
+            {t('exp.darkMode.force')}
+          </label>
+          <p className="ps-6 text-xs text-ink-soft">{t('exp.darkMode.forceHint')}</p>
         </fieldset>
       )
     case 'zoom':
@@ -402,6 +479,8 @@ function Noticed({
     if (observations.autoplay)
       lines.push(t('exp.motion.autoplay', { count: observations.autoplay }))
     if (!lines.length) lines.push(t('exp.motion.calm'))
+  } else if (id === 'darkMode') {
+    lines.push(t(observations.darkBackground ? 'exp.darkMode.has' : 'exp.darkMode.none'))
   } else {
     if (observations.media) {
       lines.push(t('exp.noSound.media', { count: observations.media }))

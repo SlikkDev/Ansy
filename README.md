@@ -4,8 +4,8 @@
 
 Ansy (Hebrew: אָנְסִי) is a free, open-source desktop browser that lets business
 owners experience their own website the way people with disabilities do: low
-vision, colour blindness, keyboard-only use, no sound, motion sensitivity and
-more, together with the tools those people rely on, like screen readers, zoom and
+vision, colour blindness, loss of the visual field, light sensitivity,
+keyboard-only use, no sound, motion sensitivity and more, together with the tools those people rely on, like screen readers, zoom and
 high-contrast themes. Spot what breaks, then hand your developer a clear report.
 
 Ansy is a testing and empathy tool. It is not an accessibility overlay, it never
@@ -30,8 +30,11 @@ downloads, a check of GitHub Releases for a newer version, which you can turn
 off. [`PRIVACY.md`](PRIVACY.md) lists every request the app can make.
 
 Each experience is a task card: what changes, what to look for, and how close
-the simulation is to the real thing. The switches that change how the site
-renders (colour vision, forced colours, media preferences, font size, zoom) are
+the simulation is to the real thing. Those that can only give a rough
+impression (tunnel vision, cataracts and glare) say so and name the tool that
+person uses instead. The switches that change how the site
+renders (colour vision, forced colours, media preferences, automatic dark mode,
+font size, zoom) are
 the same DevTools commands Chrome itself uses. Small helpers run inside the
 page, in a world the site's scripts cannot see: one counts the animations that
 keep moving and the videos without captions, one draws the keyboard-only focus

@@ -42,6 +42,18 @@ const buyButtonPixel = async () => {
   return { r: bgra[2] ?? 0, g: bgra[1] ?? 0, b: bgra[0] ?? 0 }
 }
 
+/** A pixel of the site view as painted, near its top corner, where the shop shows only its background. */
+const cornerPixel = async () => {
+  const bgra = await app.evaluate(async ({ BrowserWindow }) => {
+    const [win] = BrowserWindow.getAllWindows()
+    const view = win?.contentView.children[0] as Electron.WebContentsView | undefined
+    if (!view) throw new Error('no site view')
+    const image = await view.webContents.capturePage({ x: 6, y: 6, width: 1, height: 1 })
+    return Array.from(image.toBitmap().subarray(0, 4))
+  })
+  return { r: bgra[2] ?? 0, g: bgra[1] ?? 0, b: bgra[0] ?? 0 }
+}
+
 test.beforeAll(async () => {
   h = await launchAnsy('ansy-e2e-exp-')
   ;({ app, page } = h)
@@ -172,6 +184,87 @@ test('no sound mutes the site and checks for captions', async () => {
   await expect.poll(async () => (await siteView()).muted).toBe(false)
   await expect(page.locator('.badge-on')).toHaveCount(1)
   await turnOff().click()
+})
+
+test('the panel groups the experiences by area', async () => {
+  for (const area of [
+    'Sight and blindness',
+    'Low vision and light sensitivity',
+    'Moving and clicking',
+    'Hearing',
+    'Focus and reading',
+    'For every visitor',
+  ]) {
+    await expect(page.getByRole('heading', { name: area, level: 3 })).toBeVisible()
+  }
+  await expect(
+    page.getByRole('region', { name: 'Low vision and light sensitivity' }),
+  ).toContainText('Dark mode')
+})
+
+test('tunnel vision narrows the view to the mouse, and says it is a rough impression', async () => {
+  await card('Tunnel and central vision loss').click()
+  await expect(page.getByText('A rough impression', { exact: true })).toBeVisible()
+  await expect(page.getByText(/try Zoom to 400% for the tool itself/)).toBeVisible()
+  await noViolations('tunnel vision card')
+  await turnOn().click()
+  await expect
+    .poll(() => inSite<boolean>('!!document.querySelector("[data-ansy-overlay]")'))
+    .toBe(true)
+  // Away from the clear circle, the page is dark.
+  await expect.poll(async () => (await cornerPixel()).r).toBeLessThan(40)
+
+  await page.getByRole('radio', { name: /Central loss/ }).check()
+  await expect.poll(async () => (await cornerPixel()).r).toBeGreaterThan(200)
+
+  // The overlay goes with the page and comes back on the next one.
+  await page.getByRole('button', { name: 'Reload' }).click()
+  await expect
+    .poll(() => inSite<boolean>('!!document.querySelector("[data-ansy-overlay]")'))
+    .toBe(true)
+  await turnOff().click()
+  await expect
+    .poll(() => inSite<boolean>('!!document.querySelector("[data-ansy-overlay]")'))
+    .toBe(false)
+})
+
+test('cataracts and glare veil the page', async () => {
+  await card('Cataracts and glare').click()
+  await turnOn().click()
+  await expect
+    .poll(() =>
+      inSite<string>('document.querySelector("[data-ansy-overlay]")?.getAttribute("style") ?? ""'),
+    )
+    .toContain('sepia')
+  await page.getByRole('radio', { name: /Glare/ }).check()
+  await expect
+    .poll(() =>
+      inSite<string>('document.querySelector("[data-ansy-overlay]")?.getAttribute("style") ?? ""'),
+    )
+    .toContain('brightness(1.4)')
+  await turnOff().click()
+})
+
+test('dark mode asks for a dark theme, and can darken a site that has none', async () => {
+  await card('Dark mode').click()
+  await turnOn().click()
+  await expect
+    .poll(() => inSite<boolean>('matchMedia("(prefers-color-scheme: dark)").matches'))
+    .toBe(true)
+  await expect(
+    page.getByText('The site stayed light: it has no dark theme of its own'),
+  ).toBeVisible({ timeout: 10_000 })
+  expect((await cornerPixel()).r).toBeGreaterThan(200)
+
+  await page.getByRole('checkbox', { name: /Also darken sites/ }).check()
+  await expect.poll(async () => (await cornerPixel()).r).toBeLessThan(60)
+  await noViolations('dark mode card, on')
+
+  await turnOff().click()
+  await expect.poll(async () => (await cornerPixel()).r).toBeGreaterThan(200)
+  await expect
+    .poll(() => inSite<boolean>('matchMedia("(prefers-color-scheme: dark)").matches'))
+    .toBe(false)
 })
 
 test('the cards read in Hebrew too', async () => {

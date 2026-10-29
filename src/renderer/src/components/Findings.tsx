@@ -73,7 +73,7 @@ export function KeyboardFindings({
   }
   return (
     <section>
-      <h3 className={heading}>{t('panel.noticed')}</h3>
+      <h4 className={heading}>{t('panel.noticed')}</h4>
       <p>
         {report.stops
           ? t('exp.keyboard.stops', { count: report.stops })
@@ -84,7 +84,7 @@ export function KeyboardFindings({
           .filter((group) => group.items.length > 0)
           .map((group) => (
             <div key={group.key} className="mt-2">
-              <h4 className="font-medium">{t(group.key)}</h4>
+              <h5 className="font-medium">{t(group.key)}</h5>
               <ul className="list-disc ps-5">
                 {group.items.map((item) => (
                   <li key={item.target}>
@@ -116,7 +116,7 @@ export function ScanResults({ scan, scanning }: { scan: ScanResult | null; scann
         : t('exp.scan.clean')
   return (
     <section>
-      <h3 className={heading}>{t('panel.noticed')}</h3>
+      <h4 className={heading}>{t('panel.noticed')}</h4>
       <p aria-live="polite" aria-atomic="true" className="mb-2">
         {summary}
       </p>
@@ -129,7 +129,7 @@ export function ScanResults({ scan, scanning }: { scan: ScanResult | null; scann
           </ul>
           {scan.incomplete.length > 0 && (
             <div className="mt-3">
-              <h4 className="font-medium">{t('exp.scan.incomplete')}</h4>
+              <h5 className="font-medium">{t('exp.scan.incomplete')}</h5>
               <p className="mb-2 text-ink-soft">{t('exp.scan.incompleteIntro')}</p>
               <ul className="flex flex-col gap-2">
                 {scan.incomplete.map((issue) => (
@@ -167,7 +167,7 @@ function IssueCard({ issue }: { issue: ScanIssue }) {
         )}
         <span className="text-ink-soft">{where}</span>
       </div>
-      <h4 className="font-medium">{issue.help}</h4>
+      <h5 className="font-medium">{issue.help}</h5>
       <p className="mt-1">{explanation}</p>
       <details className="mt-2">
         <summary className="cursor-pointer text-ink-soft">

@@ -29,6 +29,7 @@ import {
   MOUSE_OFF_CSS,
 } from './keyboard-helper'
 import { observeSource } from './observe'
+import { overlayHideSource, overlaySource, overlayUninstallSource } from './overlay-helper'
 import { Reader } from './reader'
 import { checkFocusableSource } from './retest'
 import { isRawScan, runAxe, runAxeOn } from './scan'
@@ -141,15 +142,21 @@ export class ExperienceEngine {
     return this.applied.reader ? this.reader.elementFor(index) : Promise.resolve(null)
   }
 
-  /** Lifts the screen cover for the duration of `task`, e.g. a screenshot, and puts it back. */
+  /**
+   * Lifts the screen cover and any overlay for the duration of `task`, e.g. a
+   * screenshot, and puts them back: the developer needs the page, not the impression.
+   */
   async uncovered<T>(task: () => Promise<T>): Promise<T> {
-    if (!this.sheets.cover) return task()
-    await this.applySheet('cover', COVER_CSS, false)
+    const overlay = this.applied.overlay !== null
+    if (!this.sheets.cover && !overlay) return task()
+    if (this.sheets.cover) await this.applySheet('cover', COVER_CSS, false)
+    if (overlay) await this.runInWorld(overlayHideSource(true))
     await new Promise((resolve) => setTimeout(resolve, 50))
     try {
       return await task()
     } finally {
       if (this.applied.cover) await this.applySheet('cover', COVER_CSS, true)
+      if (this.applied.overlay) await this.runInWorld(overlayHideSource(false))
     }
   }
 
@@ -211,6 +218,17 @@ export class ExperienceEngine {
     if (JSON.stringify(want.mediaFeatures) !== JSON.stringify(was.mediaFeatures)) {
       tasks.push(this.send('Emulation.setEmulatedMedia', { features: want.mediaFeatures }))
     }
+    if (want.autoDark !== was.autoDark) {
+      // No `enabled` clears the override and leaves the browser's own default.
+      tasks.push(
+        this.send('Emulation.setAutoDarkModeOverride', want.autoDark ? { enabled: true } : {}),
+      )
+    }
+    if (want.overlay !== was.overlay) {
+      tasks.push(
+        this.runInWorld(want.overlay ? overlaySource(want.overlay) : overlayUninstallSource),
+      )
+    }
     if (want.fontSize !== was.fontSize) {
       tasks.push(
         this.send('Page.setFontSizes', {
@@ -255,6 +273,7 @@ export class ExperienceEngine {
     if (want.textSpacingCss) await this.applySheet('spacing', TEXT_SPACING_CSS, true)
     if (want.mouseOff) await this.applySheet('mouse', MOUSE_OFF_CSS, true)
     if (want.cover) await this.applySheet('cover', COVER_CSS, true)
+    if (want.overlay) await this.runInWorld(overlaySource(want.overlay))
     if (want.reader) this.reader.pageLoaded()
     if (want.keyboard) {
       await this.runInWorld(keyboardHelperSource)
@@ -429,7 +448,9 @@ export class ExperienceEngine {
 function isObservations(value: unknown): value is Observations {
   if (!value || typeof value !== 'object') return false
   const v = value as Record<string, unknown>
-  return ['animations', 'autoplay', 'media', 'mediaWithoutCaptions', 'embeddedPlayers'].every(
-    (k) => typeof v[k] === 'number',
+  return (
+    ['animations', 'autoplay', 'media', 'mediaWithoutCaptions', 'embeddedPlayers'].every(
+      (k) => typeof v[k] === 'number',
+    ) && typeof v.darkBackground === 'boolean'
   )
 }
