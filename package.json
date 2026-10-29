@@ -1,7 +1,7 @@
 {
   "name": "ansy",
   "productName": "Ansy",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "A free, open-source desktop browser for experiencing your own website the way people with disabilities do, including the tools they use.",
   "private": true,
   "license": "MIT",

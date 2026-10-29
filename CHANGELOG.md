@@ -6,6 +6,8 @@ All notable changes to Ansy are recorded here. The format follows
 
 ## Unreleased
 
+## 2.0.0 - 2026-10-29
+
 ### Added
 
 - The experiences panel grouped by area: sight and blindness, low vision and
