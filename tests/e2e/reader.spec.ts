@@ -182,6 +182,11 @@ test('Enter activates, Tab is followed, and a text field takes the keys until Es
 test('a reader finding is saved like any other and checked again', async () => {
   await h.page.getByRole('button', { name: 'Back' }).click()
   await expect(lastLine()).toHaveText(/^Checkout\. Page loaded/, { timeout: 10_000 })
+  // A walk on the page first: the finding keeps it, for "Check again" to replay.
+  await keyInSite('Home', ['control'])
+  await expect(lastLine()).toHaveText(/landmark/)
+  await keyInSite('h')
+  await expect(lastLine()).toHaveText('Checkout, heading level 1')
   await h.page
     .locator('[data-reader-finding="reader-button-name"]')
     .getByRole('button', { name: 'Save as finding' })
@@ -198,6 +203,7 @@ test('a reader finding is saved like any other and checked again', async () => {
   const finding = h.page.locator('[data-finding]').first()
   await expect(finding).toContainText('A button with no name')
   await expect(finding).toContainText('Ansy Reader (screen reader)')
+  await expect(finding).toContainText('Open the page, then press: \u2066Ctrl+Home, H\u2069.')
 
   // The provider names the button; check again hears it now.
   const page = readFileSync(

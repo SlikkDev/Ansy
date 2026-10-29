@@ -1,6 +1,7 @@
 import { app, clipboard, ipcMain, shell, type IpcMainInvokeEvent } from 'electron'
 import {
   forSite,
+  replays,
   sanitizeFindingDraft,
   sanitizeFindingPatch,
   siteKeyOf,
@@ -154,12 +155,15 @@ export function registerIpc({ settings, findings, updater, getWindow, isDev }: D
     return pending ? `data:image/png;base64,${pending.toString('base64')}` : null
   })
   ipcMain.handle(channels.findingsAdd, (event, raw: unknown): Finding | null => {
-    if (!site(event)) return null
+    const view = site(event)
+    if (!view) return null
     const draft = sanitizeFindingDraft(raw)
     if (!draft) return null
     const png = pending
     pending = null
-    return findings.add(draft, png)
+    // A keyboard or reader finding keeps the keys that led to it, for "Check again" to press.
+    const steps = replays(draft) ? view.experiences.stepsFor(draft.url) : null
+    return findings.add(draft, png, steps)
   })
   ipcMain.handle(channels.findingsUpdate, (_event, id: unknown, patch: unknown) =>
     isId(id) ? findings.update(id, sanitizeFindingPatch(patch)) : null,
@@ -178,6 +182,8 @@ export function registerIpc({ settings, findings, updater, getWindow, isDev }: D
     retesting = true
     try {
       const outcome = await retestFinding(view, finding)
+      // A replay focuses the site to press its keys; hand focus back to the button pressed.
+      if (!event.sender.isDestroyed()) event.sender.focus()
       return findings.update(finding.id, { retest: { at: Date.now(), outcome, by: 'ansy' } })
     } finally {
       retesting = false

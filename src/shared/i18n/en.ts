@@ -600,6 +600,8 @@ export const en = {
   'findings.screenshot': 'Screenshot',
   'findings.screenshotAlt': 'Screenshot of {title}, with the element ringed',
   'findings.screenshotShow': 'Show the screenshot',
+  'findings.steps': 'Keys to get there',
+  'findings.stepsBody': 'Open the page, then press: {keys}.',
   'findings.retest': 'Check again',
   'findings.retesting': 'Opening the page and checking…',
   'findings.retest.fixed': 'Fixed',

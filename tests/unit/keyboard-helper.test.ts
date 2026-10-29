@@ -3,7 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { keyboardHelper, keyboardHelperSource, MOUSE_OFF_CSS } from '../../src/main/keyboard-helper'
 import type { KeyboardReport } from '../../src/shared/keyboard'
 
-type Api = { report(): KeyboardReport; reset(): void; uninstall(): void }
+type Api = {
+  report(): KeyboardReport
+  reset(): void
+  uninstall(): void
+  reached(selector: string): boolean
+}
 const api = () => (globalThis as unknown as { __ansyKeyboard?: Api }).__ansyKeyboard
 const overlay = () => document.querySelector('[data-ansy-overlay]')
 
@@ -98,6 +103,19 @@ describe('keyboardHelper', () => {
     el('buy').focus()
     await wait(10)
     expect(api()!.report().invisibleFocus).toEqual([{ label: 'a “Terms”', target: '#quiet' }])
+  })
+
+  it('remembers where the keyboard landed, for a replayed re-test, until reset', async () => {
+    tab()
+    el('home').focus()
+    await wait(320)
+    el('buy').focus() // by mouse: not landed on by the keyboard
+    expect(api()!.reached('#home')).toBe(true)
+    expect(api()!.reached('#buy')).toBe(false)
+    expect(api()!.reached('#gone')).toBe(false)
+    expect(api()!.reached('<<not a selector')).toBe(false)
+    api()!.reset()
+    expect(api()!.reached('#home')).toBe(false)
   })
 
   it('lists what reacts to a click but cannot take focus', () => {

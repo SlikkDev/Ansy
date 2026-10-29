@@ -41,6 +41,7 @@ import {
   type TremorReport,
 } from '../shared/motor'
 import type { ReaderCommand, ReaderEvent } from '../shared/reader'
+import { keyCodeFor, KeyTrail, stepFor, stepForReaderCommand, type KeyStep } from '../shared/replay'
 import {
   emptyVoiceReport,
   isVoiceResult,
@@ -52,6 +53,7 @@ import { sortIssues, toScanIssue, type ScanResult } from '../shared/scan'
 import { highlightSource } from './highlight'
 import {
   keyboardHelperSource,
+  keyboardReachedSource,
   keyboardReportSource,
   keyboardResetSource,
   keyboardUninstallSource,
@@ -104,6 +106,14 @@ const KEYBOARD_POLL = 400
 /** The same for the switch access and tremor helpers. */
 const MOTOR_POLL = 400
 
+/** The pause between replayed keys: long enough for the helpers to see each one land. */
+const REPLAY_GAP = 120
+
+/** After the last replayed key, for the page and the helpers to settle. */
+const REPLAY_SETTLE = 400
+
+const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+
 /** The style sheets Ansy inserts into the page, by what they do. */
 type Sheet = 'spacing' | 'mouse' | 'cover' | 'cursor' | 'font'
 
@@ -145,6 +155,8 @@ export class ExperienceEngine {
   private scanning = false
   private running = false
   private rerun = false
+  /** The keys pressed on this page, for the keyboard and reader findings made on it. */
+  private trail = new KeyTrail()
   /** Keys of the sheets inserted into the current page. */
   private sheets: Record<Sheet, string | null> = noSheets()
   readonly reader: Reader
@@ -220,11 +232,20 @@ export class ExperienceEngine {
 
   /** A key pressed in the site: true when Ansy Reader keeps it from the page. */
   handleInput(input: Input): boolean {
-    return this.applied.reader && this.reader.handleInput(input)
+    const taken = this.applied.reader && this.reader.handleInput(input)
+    if (input.type === 'keyDown') this.trail.push(stepFor(input, taken))
+    return taken
   }
 
   readerCommand(command: ReaderCommand): Promise<void> {
-    return this.applied.reader ? this.reader.run(command) : Promise.resolve()
+    if (!this.applied.reader) return Promise.resolve()
+    this.trail.push(stepForReaderCommand(command))
+    return this.reader.run(command)
+  }
+
+  /** The keys pressed on this page so far, if it is the page at this address; null otherwise. */
+  stepsFor(url: string): KeyStep[] | null {
+    return this.trail.for(url)
   }
 
   readerShow(index: number): Promise<boolean> {
@@ -293,7 +314,10 @@ export class ExperienceEngine {
   async checkFinding(finding: Finding): Promise<RetestOutcome> {
     if (this.contents.isDestroyed() || !finding.rule) return 'unknown'
     try {
-      if (finding.kind === 'reader') return await this.reader.check(finding)
+      if (finding.kind === 'reader') {
+        if (finding.steps?.length) await this.replay(finding.steps, false)
+        return await this.reader.check(finding)
+      }
       if (!finding.element) return 'unknown'
       if (finding.kind === 'scan') {
         const result = await runAxeOn(
@@ -309,10 +333,64 @@ export class ExperienceEngine {
         const result = await this.runInWorld<string>(checkFocusableSource(finding.element.target))
         return result === 'focusable' ? 'fixed' : result === 'unfocusable' ? 'failing' : 'unknown'
       }
+      if (finding.kind === 'keyboard' && finding.steps?.length) {
+        return await this.replayKeyboard(finding.rule.id, finding.element.target, finding.steps)
+      }
     } catch (error) {
       console.error('Check again failed', error)
     }
     return 'unknown'
+  }
+
+  /**
+   * A trap or a hidden focus, checked by pressing the same keys again on the
+   * fresh page. Still found there: failing. The keyboard landed on it and
+   * found nothing: fixed. Never landed on it, so the page has changed: unknown.
+   */
+  private async replayKeyboard(
+    rule: string,
+    target: string,
+    steps: readonly KeyStep[],
+  ): Promise<RetestOutcome> {
+    if (rule !== keyboardRules.traps.id && rule !== keyboardRules.invisibleFocus.id) {
+      return 'unknown'
+    }
+    if (!this.applied.keyboard) return 'unknown'
+    await this.runInWorld(keyboardResetSource)
+    await this.replay(steps, true)
+    // Hidden focus shows when focus leaves, so move it on from the element once more.
+    if (rule === keyboardRules.invisibleFocus.id) await this.replay([{ code: 'Tab' }], true)
+    const reached = await this.runInWorld<boolean | null>(keyboardReachedSource(target))
+    const report = await this.runInWorld<unknown>(keyboardReportSource)
+    if (!isKeyboardReport(report)) return 'unknown'
+    const found = (rule === keyboardRules.traps.id ? report.traps : report.invisibleFocus).some(
+      (item) => item.target === target,
+    )
+    if (found) return 'failing'
+    return reached ? 'fixed' : 'unknown'
+  }
+
+  /**
+   * Presses the keys again in the site, one at a time, the way the owner did.
+   * With chars, Enter also sends its character, which is what makes a focused
+   * button act; the reader acts on the key itself, so its replays leave it out.
+   */
+  private async replay(steps: readonly KeyStep[], chars: boolean): Promise<void> {
+    if (this.contents.isDestroyed()) return
+    this.contents.focus()
+    for (const step of steps) {
+      const keyCode = keyCodeFor(step.code)
+      if (!keyCode || this.contents.isDestroyed()) continue
+      const modifiers: ('shift' | 'control')[] = []
+      if (step.shift) modifiers.push('shift')
+      if (step.ctrl) modifiers.push('control')
+      this.contents.sendInputEvent({ type: 'keyDown', keyCode, modifiers })
+      if (chars && keyCode === 'Enter')
+        this.contents.sendInputEvent({ type: 'char', keyCode: '\r', modifiers })
+      this.contents.sendInputEvent({ type: 'keyUp', keyCode, modifiers })
+      await delay(REPLAY_GAP)
+    }
+    await delay(REPLAY_SETTLE)
   }
 
   /** Starts counting over: the keyboard trail, or switch access's steps and picks. */
@@ -432,6 +510,7 @@ export class ExperienceEngine {
 
   private async reapplyAfterNavigation(): Promise<void> {
     if (this.contents.isDestroyed()) return
+    this.trail.start(this.contents.getURL())
     const want = this.applied
     if (want.zoomFactor !== 1) this.contents.setZoomFactor(want.zoomFactor)
   }

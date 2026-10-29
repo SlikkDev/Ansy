@@ -1,4 +1,4 @@
-import type { Finding, RetestOutcome } from '../shared/findings'
+import { replays, type Finding, type RetestOutcome } from '../shared/findings'
 import { isAvailableExperience } from '../shared/experiences'
 import type { SiteView } from './site-view'
 
@@ -11,13 +11,16 @@ const SETTLE = 1000
  * decide comes back unknown, and the owner, looking at the reopened page, says.
  */
 export async function retestFinding(site: SiteView, finding: Finding): Promise<RetestOutcome> {
-  // A reader finding needs the reader to look again, whatever was on when it was saved.
+  // A reader finding needs the reader to look again, whatever was on when it was saved;
+  // a replayed keyboard finding needs the keyboard helper to watch the keys land.
   const active =
     finding.kind === 'reader'
       ? 'reader'
-      : finding.experience && isAvailableExperience(finding.experience)
-        ? finding.experience
-        : null
+      : finding.kind === 'keyboard' && finding.steps?.length && replays(finding)
+        ? 'keyboard'
+        : finding.experience && isAvailableExperience(finding.experience)
+          ? finding.experience
+          : null
   await site.experiences.set({ active })
   const loaded = await site.loadAndWait(finding.url)
   if (!loaded) return 'unknown'

@@ -72,7 +72,10 @@ own note. Findings are kept per site, in the app's data folder only, and go out
 as a PDF or a plain-text report (with the no-certificate disclaimer, and an
 optional "Ask Slikk.Dev to fix this" line) for whoever builds the site. "Check
 again" reopens the page with the same experience and tells the owner whether the
-problem is still there.
+problem is still there. A keyboard trap, a hidden focus or a reader finding
+keeps the keys that led to it, and Check again presses them again, so it can
+say fixed or still there by itself; the keys are in the report too, as steps
+to follow.
 
 ### Develop
 

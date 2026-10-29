@@ -9,7 +9,13 @@ import {
 } from '../../../shared/findings'
 import type { MessageKey } from '../../../shared/i18n'
 import type { ExportFormat, SiteState } from '../../../shared/ipc'
-import { explainRule, formatDate, severityLabel, wcagLabel } from '../../../shared/report'
+import {
+  explainRule,
+  formatDate,
+  severityLabel,
+  stepsLabel,
+  wcagLabel,
+} from '../../../shared/report'
 import { ansy } from '../lib/ansy'
 import { useCapture } from '../lib/findings'
 import { useI18n, useT } from '../lib/i18n'
@@ -155,12 +161,14 @@ function FindingCard({ finding, siteOpen }: { finding: Finding; siteOpen: boolea
     void ansy.findings.screenshot(finding.id).then((data) => setShot(data))
   }
   const check = async () => {
+    if (checking) return
     setChecking(true)
     setStatus(t('findings.retesting'))
     const result = await ansy.findings.retest(finding.id)
     setChecking(false)
     setStatus(result ? '' : t('findings.retest.busy'))
   }
+  const steps = stepsLabel(finding, t)
   const judge = (outcome: RetestOutcome) =>
     void ansy.findings.update(finding.id, { retest: { at: Date.now(), outcome, by: 'owner' } })
   const show = () =>
@@ -215,6 +223,12 @@ function FindingCard({ finding, siteOpen }: { finding: Finding; siteOpen: boolea
           </code>
         </section>
       )}
+      {steps && (
+        <section className="mt-2">
+          <h4 className={heading}>{t('findings.steps')}</h4>
+          <p>{steps}</p>
+        </section>
+      )}
       {finding.screenshot && (
         <details className="mt-2" onToggle={loadShot}>
           <summary className="cursor-pointer text-ink-soft">{t('findings.screenshotShow')}</summary>
@@ -260,7 +274,13 @@ function FindingCard({ finding, siteOpen }: { finding: Finding; siteOpen: boolea
             {t('panel.show')}
           </button>
         )}
-        <button type="button" className="btn-link" disabled={checking} onClick={() => void check()}>
+        {/* aria-disabled, not disabled, so focus stays on the button while the page is checked. */}
+        <button
+          type="button"
+          className="btn-link"
+          aria-disabled={checking}
+          onClick={() => void check()}
+        >
           {t('findings.retest')}
         </button>
         {confirmDelete ? (
