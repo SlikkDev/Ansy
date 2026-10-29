@@ -37,6 +37,10 @@ describe('switchesFor', () => {
       switchAccess: null,
       tremor: false,
       voice: false,
+      readableFont: false,
+      readingCheck: false,
+      plainLanguage: false,
+      flashes: false,
     })
   })
 
@@ -148,6 +152,41 @@ describe('switchesFor', () => {
     })
   })
 
+  it('sets the reading aids one by one, and checks for clipped text while either changes it', () => {
+    expect(switchesFor(on({ active: 'readingAids' }))).toMatchObject({
+      readableFont: true,
+      textSpacingCss: true,
+      overlay: 'ruler',
+      readingCheck: true,
+    })
+    expect(
+      switchesFor(
+        on({
+          active: 'readingAids',
+          readingFont: false,
+          readingSpacing: false,
+          readingRuler: false,
+        }),
+      ),
+    ).toMatchObject({
+      readableFont: false,
+      textSpacingCss: false,
+      overlay: null,
+      readingCheck: false,
+    })
+  })
+
+  it('scores plain language and watches for flashes on their own', () => {
+    expect(switchesFor(on({ active: 'plainLanguage' }))).toEqual({
+      ...switchesFor(defaultExperienceState),
+      plainLanguage: true,
+    })
+    expect(switchesFor(on({ active: 'flashing' }))).toEqual({
+      ...switchesFor(defaultExperienceState),
+      flashes: true,
+    })
+  })
+
   it('turns the scan on by itself', () => {
     expect(switchesFor(on({ active: 'scan' }))).toMatchObject({ scan: true, observe: null })
   })
@@ -209,7 +248,7 @@ describe('sanitizeExperiencePatch', () => {
 describe('the panel table', () => {
   it('puts every experience in an area, and every Low one says it is an impression', () => {
     const lows = experiences.filter((e) => e.fidelity === 'low').map((e) => e.id)
-    expect(lows).toEqual(['tunnelVision', 'haze', 'tremor'])
+    expect(lows).toEqual(['tunnelVision', 'haze', 'tremor', 'flashing'])
     expect(en['fidelity.low']).toBe('A rough impression')
     for (const area of experienceAreas) {
       expect(experiences.some((e) => e.area === area)).toBe(true)

@@ -44,6 +44,15 @@
         border-radius: 6px;
         padding: 0.5rem 0.9rem;
       }
+      /* Sized to its words exactly: wider spacing or another font cuts it off (WCAG 1.4.12). */
+      .returns {
+        display: inline-block;
+        width: 14rem;
+        height: 1.4em;
+        overflow: hidden;
+        border: 1px solid #222;
+        padding: 0 0.3rem;
+      }
       .legal {
         color: #aaa;
         font-size: 11px;
@@ -139,6 +148,15 @@
         Add to basket
       </button>
     </p>
+    <p><span class="returns">Free returns within 30 days</span></p>
+    <!-- One long sentence of legal words: plain language rings it. -->
+    <p>
+      Notwithstanding any provision to the contrary contained herein, the purchaser acknowledges
+      that merchandise returned subsequent to the expiration of the applicable consideration period
+      shall be ineligible for reimbursement, exchange or any alternative remedy whatsoever.
+    </p>
+    <!-- A banner that flashes four times a second, on its own page and only on request. -->
+    <p><a href="flash.html">Summer sale banner</a> (it flashes: seizure warning)</p>
     <!-- Media the no-sound and motion experiences look at. Neither has a real source. -->
     <video id="promo" autoplay muted loop width="160" height="90" aria-label="Promo video"></video>
     <video id="captioned" width="160" height="90" aria-label="Captioned video">

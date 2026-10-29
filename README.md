@@ -31,7 +31,7 @@ off. [`PRIVACY.md`](PRIVACY.md) lists every request the app can make.
 
 Each experience is a task card: what changes, what to look for, and how close
 the simulation is to the real thing. Those that can only give a rough
-impression (tunnel vision, cataracts and glare, tremor) say so and name the tool that
+impression (tunnel vision, cataracts and glare, tremor, flashing) say so and name the tool that
 person uses instead. The switches that change how the site
 renders (colour vision, forced colours, media preferences, automatic dark mode,
 font size, zoom) are
@@ -41,10 +41,13 @@ keep moving and the videos without captions, one draws the keyboard-only focus
 ring and numbered trail and notes what the keyboard cannot do, one steps
 through the controls as a switch device does, one shakes the pointer for the
 tremor experience, one carries out voice control's commands by each control's
-name, and one runs
+name, others find text the reading aids cut off and the page's running text for
+the reading score, and one runs
 [axe-core](https://github.com/dequelabs/axe-core) for the automatic scan, whose
 results Ansy explains in plain words, in both languages, and maps to their WCAG
-success criteria.
+success criteria. The flash watcher reads small copies of the page's frames
+through the same DevTools protocol and counts flashes the way WCAG 2.3.1
+defines them.
 
 Ansy Reader is the built-in screen reader. It reads the page's accessibility
 tree, the same tree real screen readers are given, through the DevTools

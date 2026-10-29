@@ -12,7 +12,7 @@ import { useI18n, useT } from '../lib/i18n'
 const heading = 'mb-1 text-xs font-semibold uppercase tracking-wide text-ink-soft'
 
 /** Opens the finding dialog with what this row knows. */
-function SaveFinding({ start }: { start: CaptureStart }) {
+export function SaveFinding({ start }: { start: CaptureStart }) {
   const t = useT()
   const capture = useCapture()
   return (
@@ -23,7 +23,7 @@ function SaveFinding({ start }: { start: CaptureStart }) {
 }
 
 /** Scrolls the site to the element and rings it; says so when it is gone. */
-function ShowOnPage({ target }: { target: string }) {
+export function ShowOnPage({ target }: { target: string }) {
   const t = useT()
   const [missing, setMissing] = useState(false)
   return (

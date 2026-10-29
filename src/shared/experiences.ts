@@ -4,6 +4,7 @@
  * view) and Ansy's screens (which show them as task cards).
  */
 
+import type { FlashReport, PlainLanguageReport, ReadingReport } from './cognitive'
 import type { KeyboardReport } from './keyboard'
 import { switchSpeeds, type SwitchReport, type SwitchSpeed, type TremorReport } from './motor'
 import type { ReaderReport } from './reader'
@@ -26,6 +27,9 @@ export type ExperienceId =
   | 'voiceControl'
   | 'noSound'
   | 'motion'
+  | 'readingAids'
+  | 'plainLanguage'
+  | 'flashing'
   | 'scan'
 
 /**
@@ -70,6 +74,9 @@ export const experiences: readonly ExperienceInfo[] = [
   { id: 'voiceControl', area: 'motor', fidelity: 'medium', available: true },
   { id: 'noSound', area: 'hearing', fidelity: 'medium', available: true },
   { id: 'motion', area: 'cognitive', fidelity: 'high', available: true },
+  { id: 'readingAids', area: 'cognitive', fidelity: 'medium', available: true },
+  { id: 'plainLanguage', area: 'cognitive', fidelity: 'medium', available: true },
+  { id: 'flashing', area: 'cognitive', fidelity: 'low', available: true },
   { id: 'scan', area: 'check', fidelity: 'high', available: true },
 ]
 
@@ -97,7 +104,7 @@ export const hazeModes = ['cataract', 'glare'] as const
 export type HazeMode = (typeof hazeModes)[number]
 
 /** What the overlay helper paints over the site. */
-export type OverlayKind = FieldMode | HazeMode
+export type OverlayKind = FieldMode | HazeMode | 'ruler'
 
 export const zoomLevels = [2, 4] as const
 export type ZoomLevel = (typeof zoomLevels)[number]
@@ -135,6 +142,10 @@ export interface ExperienceState {
   readerRate: ReaderRate
   /** Ansy Reader: black out the site, so the ears are all there is. */
   readerCover: boolean
+  /** Reading aids: a readable font, wider spacing, a line-focus ruler. */
+  readingFont: boolean
+  readingSpacing: boolean
+  readingRuler: boolean
 }
 
 export const defaultExperienceState: ExperienceState = {
@@ -153,6 +164,9 @@ export const defaultExperienceState: ExperienceState = {
   readerVoice: true,
   readerRate: 'normal',
   readerCover: false,
+  readingFont: true,
+  readingSpacing: true,
+  readingRuler: true,
 }
 
 /** What the in-page helper noticed, for the experiences that look for something. */
@@ -183,6 +197,12 @@ export interface ExperienceReport {
   tremor: TremorReport | null
   /** Voice control: commands that missed because a name differs from what shows, while it runs. */
   voice: VoiceReport | null
+  /** Reading aids: text the new font or spacing cut off, while they run. */
+  reading: ReadingReport | null
+  /** Plain language: the page's reading score once worked out, null inside when the page has too little text. */
+  plainLanguage: { score: PlainLanguageReport | null } | null
+  /** Flashing: what the frame watcher has counted, while it runs. */
+  flashing: FlashReport | null
   /** The last automatic scan of the current page, while the scan runs. */
   scan: ScanResult | null
   /** A scan is due or under way. */
@@ -225,6 +245,14 @@ export interface SiteSwitches {
   tremor: boolean
   /** Voice control: the command box's helper, and numbers on request. */
   voice: boolean
+  /** Reading aids: a readable font over the page's own. */
+  readableFont: boolean
+  /** Reading aids: look for text the font or spacing cut off. */
+  readingCheck: boolean
+  /** Plain language: score the page's text and ring the hardest blocks. */
+  plainLanguage: boolean
+  /** Flashing: watch the frames and count flashes. */
+  flashes: boolean
   /** Ansy Reader: the accessibility tree read aloud, keys taken from the site. */
   reader: boolean
   /** The site painted black. */
@@ -250,6 +278,10 @@ export function switchesFor(state: ExperienceState): SiteSwitches {
     switchAccess: null,
     tremor: false,
     voice: false,
+    readableFont: false,
+    readingCheck: false,
+    plainLanguage: false,
+    flashes: false,
     reader: false,
     cover: false,
   }
@@ -301,6 +333,18 @@ export function switchesFor(state: ExperienceState): SiteSwitches {
         mediaFeatures: [{ name: 'prefers-reduced-motion', value: 'reduce' }],
         observe: 'motion',
       }
+    case 'readingAids':
+      return {
+        ...off,
+        readableFont: state.readingFont,
+        textSpacingCss: state.readingSpacing,
+        overlay: state.readingRuler ? 'ruler' : null,
+        readingCheck: state.readingFont || state.readingSpacing,
+      }
+    case 'plainLanguage':
+      return { ...off, plainLanguage: true }
+    case 'flashing':
+      return { ...off, flashes: true }
     case 'noSound':
       return { ...off, muted: true, observe: 'sound' }
     case 'scan':
@@ -381,6 +425,9 @@ export function sanitizeExperiencePatch(current: ExperienceState, raw: unknown):
     next.readerRate = r.readerRate as ReaderRate
   }
   if (typeof r.readerCover === 'boolean') next.readerCover = r.readerCover
+  if (typeof r.readingFont === 'boolean') next.readingFont = r.readingFont
+  if (typeof r.readingSpacing === 'boolean') next.readingSpacing = r.readingSpacing
+  if (typeof r.readingRuler === 'boolean') next.readingRuler = r.readingRuler
   return next
 }
 

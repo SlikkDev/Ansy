@@ -13,7 +13,7 @@ import { isTaskId, type TaskId } from './tasks'
 /** axe's impact for what the scan found; "owner" for what the owner met while using the site. */
 export type Severity = Impact | 'owner'
 
-export type FindingKind = 'scan' | 'keyboard' | 'reader' | 'note'
+export type FindingKind = 'scan' | 'keyboard' | 'reader' | 'check' | 'note'
 
 /** The rule a finding breaks: an axe rule, or one of Ansy's own keyboard or reader rules. */
 export interface FindingRule {
@@ -89,7 +89,7 @@ export function forSite(findings: readonly Finding[], site: string | null): Find
 }
 
 const severities = new Set<string>([...impacts, 'owner'])
-const kinds = new Set<string>(['scan', 'keyboard', 'reader', 'note'])
+const kinds = new Set<string>(['scan', 'keyboard', 'reader', 'check', 'note'])
 const levels = new Set<string>(['A', 'AA', 'AAA'])
 
 const text = (value: unknown, max: number): string =>
@@ -191,6 +191,20 @@ export const keyboardRules = {
   traps: { id: 'keyboard-trap', wcag: ['2.1.2'], level: 'A', severity: 'critical' },
   invisibleFocus: { id: 'focus-visible', wcag: ['2.4.7'], level: 'AA', severity: 'serious' },
   unreachable: { id: 'keyboard-unreachable', wcag: ['2.1.1'], level: 'A', severity: 'critical' },
+} as const satisfies Record<
+  string,
+  { id: string; wcag: string[]; level: 'A' | 'AA' | 'AAA'; severity: Impact }
+>
+
+/**
+ * Ansy's own checks that are neither axe's nor the keyboard's: what the
+ * cognitive experiences find. Saved as kind "check"; the owner judges a
+ * re-test, since each depends on what was on screen at the time.
+ */
+export const pageRules = {
+  textClipped: { id: 'text-spacing-clipped', wcag: ['1.4.12'], level: 'AA', severity: 'serious' },
+  readingLevel: { id: 'reading-level', wcag: ['3.1.5'], level: 'AAA', severity: 'minor' },
+  flashes: { id: 'three-flashes', wcag: ['2.3.1'], level: 'A', severity: 'critical' },
 } as const satisfies Record<
   string,
   { id: string; wcag: string[]; level: 'A' | 'AA' | 'AAA'; severity: Impact }

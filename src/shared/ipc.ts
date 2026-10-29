@@ -100,6 +100,7 @@ export const channels = {
   expShow: 'exp:show',
   expKeyboardReset: 'exp:keyboard-reset',
   expVoice: 'exp:voice',
+  expSelection: 'exp:selection',
   readerCommand: 'reader:command',
   readerShow: 'reader:show',
   readerElement: 'reader:element',
