@@ -8,7 +8,12 @@ import {
   tremorHelperSource,
   tremorUninstallSource,
 } from '../../src/main/motor-helpers'
-import { isSwitchReport, isTremorReport } from '../../src/shared/motor'
+import {
+  isSwitchReport,
+  isTremorReport,
+  parseSwitchPick,
+  SWITCH_PICK_MESSAGE,
+} from '../../src/shared/motor'
 
 // jsdom lays nothing out, so every element gets a box for the helpers to see.
 const box = { width: 40, height: 20, top: 0, left: 0, right: 40, bottom: 20, x: 0, y: 0 }
@@ -72,5 +77,17 @@ describe('tremorHelper', () => {
   it('ships as self-contained source text', () => {
     expect(tremorHelperSource).toMatch(/^\(function tremorHelper\(/)
     expect(tremorHelperSource).not.toMatch(/\b(require|import|exports)\b/)
+  })
+})
+
+describe('parseSwitchPick', () => {
+  it('reads the counts a pick announces, and nothing else', () => {
+    const message = `${SWITCH_PICK_MESSAGE}{"steps":7,"picks":2,"lastPickSteps":3}`
+    expect(parseSwitchPick(message)).toEqual({ steps: 7, picks: 2, lastPickSteps: 3 })
+    expect(parseSwitchPick('hello')).toBeNull()
+    expect(parseSwitchPick(`${SWITCH_PICK_MESSAGE}{"steps":"x"}`)).toBeNull()
+    expect(parseSwitchPick(`${SWITCH_PICK_MESSAGE}not json`)).toBeNull()
+    // The helper ships alone, so it spells the prefix out; the two must agree.
+    expect(switchHelperSource(800)).toContain(JSON.stringify(SWITCH_PICK_MESSAGE).slice(1, -1))
   })
 })

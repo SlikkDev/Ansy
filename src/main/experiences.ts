@@ -23,11 +23,19 @@ import {
   emptyTremorReport,
   isSwitchReport,
   isTremorReport,
+  parseSwitchPick,
   switchInterval,
   type SwitchReport,
   type TremorReport,
 } from '../shared/motor'
 import type { ReaderCommand, ReaderEvent } from '../shared/reader'
+import {
+  emptyVoiceReport,
+  isVoiceResult,
+  parseVoiceCommand,
+  type VoiceReport,
+  type VoiceResult,
+} from '../shared/voice'
 import { sortIssues, toScanIssue, type ScanResult } from '../shared/scan'
 import { highlightSource } from './highlight'
 import {
@@ -52,6 +60,12 @@ import { overlayHideSource, overlaySource, overlayUninstallSource } from './over
 import { Reader } from './reader'
 import { checkFocusableSource } from './retest'
 import { isRawScan, runAxe, runAxeOn } from './scan'
+import {
+  voiceHelperSource,
+  voiceHideSource,
+  voiceRunSource,
+  voiceUninstallSource,
+} from './voice-helper'
 
 /** The isolated world the helpers run in. Any id above 0 is out of the site's reach. */
 const HELPER_WORLD = 1
@@ -94,6 +108,7 @@ export class ExperienceEngine {
   /** Switch access counts from the pages before this one, since counting began. */
   private switchCarry = { steps: 0, picks: 0 }
   private tremor: TremorReport | null = null
+  private voiceReport: VoiceReport | null = null
   /** A scan is due or under way; the card says so. */
   private scanning = false
   private running = false
@@ -119,7 +134,8 @@ export class ExperienceEngine {
     // Zoom, injected CSS and the helpers are per page; bring them back after a load.
     contents.on('did-navigate', () => void this.reapplyAfterNavigation())
     contents.on('dom-ready', () => void this.reapplyAfterLoad())
-    contents.on('did-navigate-in-page', () => this.reader.pageChanged())
+    // A pick that opens a page would be lost with the old page before the next poll; read it now.
+    contents.on('console-message', (details) => this.onConsole(details.message))
     contents.once('destroyed', () => this.dispose())
   }
 
@@ -134,6 +150,7 @@ export class ExperienceEngine {
         picks: this.switchReport.picks + this.switchCarry.picks,
       },
       tremor: this.tremor,
+      voice: this.voiceReport,
       scan: this.scan,
       scanning: this.scanning,
       reader: this.applied.reader ? this.reader.getReport() : null,
@@ -181,20 +198,43 @@ export class ExperienceEngine {
   }
 
   /**
+   * Runs a voice control command on the site. A miss because a control shows
+   * one thing and is named another is kept for the card, once per control.
+   */
+  async voice(text: string): Promise<VoiceResult | null> {
+    if (!this.applied.voice) return null
+    const command = parseVoiceCommand(text)
+    if (command.kind === 'unknown') return { outcome: 'unknown' }
+    const result = await this.runInWorld<unknown>(voiceRunSource(command))
+    if (!isVoiceResult(result)) return { outcome: 'noPage' }
+    const missed = result.mismatch
+    if (result.outcome === 'mismatch' && missed && this.voiceReport) {
+      if (!this.voiceReport.mismatches.some((m) => m.target === missed.target)) {
+        this.voiceReport = { mismatches: [...this.voiceReport.mismatches, missed] }
+        this.report()
+      }
+    }
+    return result
+  }
+
+  /**
    * Lifts the screen cover and any overlay for the duration of `task`, e.g. a
    * screenshot, and puts them back: the developer needs the page, not the impression.
    */
   async uncovered<T>(task: () => Promise<T>): Promise<T> {
     const overlay = this.applied.overlay !== null
-    if (!this.sheets.cover && !overlay) return task()
+    const voice = this.applied.voice
+    if (!this.sheets.cover && !overlay && !voice) return task()
     if (this.sheets.cover) await this.applySheet('cover', COVER_CSS, false)
     if (overlay) await this.runInWorld(overlayHideSource(true))
+    if (voice) await this.runInWorld(voiceHideSource(true))
     await new Promise((resolve) => setTimeout(resolve, 50))
     try {
       return await task()
     } finally {
       if (this.applied.cover) await this.applySheet('cover', COVER_CSS, true)
       if (this.applied.overlay) await this.runInWorld(overlayHideSource(false))
+      if (this.applied.voice) await this.runInWorld(voiceHideSource(false))
     }
   }
 
@@ -312,6 +352,10 @@ export class ExperienceEngine {
     if (want.switchAccess !== was.switchAccess) {
       tasks.push(this.applySwitch(want.switchAccess !== null, was.switchAccess !== null))
     }
+    if (want.voice !== was.voice) {
+      this.voiceReport = want.voice ? { ...emptyVoiceReport } : null
+      tasks.push(this.runInWorld(want.voice ? voiceHelperSource : voiceUninstallSource))
+    }
     if (want.zoomFactor !== was.zoomFactor) this.contents.setZoomFactor(want.zoomFactor)
     if (want.muted !== was.muted) this.contents.setAudioMuted(want.muted)
 
@@ -351,6 +395,11 @@ export class ExperienceEngine {
       }
       await this.runInWorld(switchHelperSource(switchInterval[want.switchAccess]))
     }
+    if (want.voice) {
+      // A mismatch belongs to the page it was found on.
+      this.voiceReport = { ...emptyVoiceReport }
+      await this.runInWorld(voiceHelperSource)
+    }
     if (want.reader) this.reader.pageLoaded()
     if (want.keyboard) {
       await this.runInWorld(keyboardHelperSource)
@@ -364,7 +413,7 @@ export class ExperienceEngine {
       this.scan = null
       this.scheduleScan()
     }
-    if (want.keyboard || want.observe || want.scan || want.switchAccess) this.report()
+    if (want.keyboard || want.observe || want.scan || want.switchAccess || want.voice) this.report()
   }
 
   private async applySheet(sheet: Sheet, css: string, on: boolean): Promise<void> {
@@ -426,6 +475,15 @@ export class ExperienceEngine {
     this.syncMotorPoll()
   }
 
+  /** A pick from the switch helper, announced before a page change can take it. */
+  private onConsole(message: string): void {
+    if (!this.applied.switchAccess) return
+    const pick = parseSwitchPick(message)
+    if (!pick) return
+    this.switchReport = { ...pick, skipped: this.switchReport?.skipped ?? [] }
+    this.report()
+  }
+
   private syncMotorPoll(): void {
     const needed = this.applied.tremor || this.applied.switchAccess !== null
     if (needed && !this.motorTimer) {
@@ -444,6 +502,8 @@ export class ExperienceEngine {
       if (
         this.applied.switchAccess &&
         isSwitchReport(result) &&
+        // A poll begun before a pick must not undo the pick's own announcement.
+        result.picks >= (this.switchReport?.picks ?? 0) &&
         JSON.stringify(result) !== JSON.stringify(this.switchReport)
       ) {
         this.switchReport = result

@@ -164,6 +164,7 @@ export const explainedRules = [
   'meta-viewport',
   'tabindex',
   'target-size',
+  'label-content-name-mismatch',
   'scrollable-region-focusable',
   'nested-interactive',
   'aria-hidden-focus',

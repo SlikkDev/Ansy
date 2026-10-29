@@ -58,6 +58,7 @@ export const he: Record<MessageKey, string> = {
   'exp.darkMode': 'מצב כהה',
   'exp.tremor': 'רעד וידיים לא יציבות',
   'exp.switchAccess': 'גישה במתג',
+  'exp.voiceControl': 'שליטה קולית',
 
   'area.vision': 'ראייה ועיוורון',
   'area.lowVision': 'ראייה ירודה ורגישות לאור',
@@ -391,7 +392,7 @@ export const he: Record<MessageKey, string> = {
   'exp.tremor.look':
     'קישורים וכפתורים קטנים שקשה לפגוע בהם.\nפקדים צפופים כל כך שפספוס לוחץ על השכן.\nתיבות סימון וכפתורי סגירה בגודל של אות.',
   'exp.tremor.fidelity':
-    'הרעד הוא רושם כללי בלבד; בדיקת הגודל מדויקת. אנשים עם רעד נעזרים הרבה פעמים במקלדת או במתג במקום, שניהם ברשימה הזו.',
+    'הרעד הוא רושם כללי בלבד; בדיקת הגודל מדויקת. אנשים עם רעד נעזרים הרבה פעמים במקלדת, במתג או בקול במקום, כולם ברשימה הזו.',
   'exp.tremor.clicks': 'לחיצות: {clicks}. נחתו במקום אחר: {misses}.',
   'exp.tremor.noClicks': 'לחצו בכמה מקומות באתר ותראו לאן הלחיצות נוחתות.',
 
@@ -411,6 +412,43 @@ export const he: Record<MessageKey, string> = {
   'exp.switchAccess.lastPick': 'צעדים עד הבחירה האחרונה: {count}',
   'exp.switchAccess.skipped': 'לחיץ, אבל הסריקה אף פעם לא נוחתת עליו',
   'exp.switchAccess.clear': 'להתחיל לספור מחדש',
+
+  'exp.voiceControl.what':
+    'אָנְסִי מקבל פקודות כמו שליטה קולית ב־Mac, ב־Windows או ב־Dragon: ״לחץ על״ ושם של כפתור, ״הצג מספרים״ כדי למספר כל מה שאפשר ללחוץ עליו, ואז ״לחץ על 4״. אפשר להקליד אותן, או להכתיב אותן לתיבה בהכתבה של המחשב עצמו. אנשים שלא יכולים להשתמש בידיים מפעילים כך אתרים שלמים.',
+  'exp.voiceControl.look':
+    'כפתורים שמציגים דבר אחד ושמם דבר אחר, כך שאמירת מה שרואים לא מוצאת כלום.\nאייקונים בלי שם בכלל, שאפשר להגיע אליהם רק לפי מספר.\nאותו שם על הרבה דברים, כמו שורה של קישורי ״קראו עוד״.',
+  'exp.voiceControl.fidelity':
+    'הפקודות מוצאות פקדים לפי השם שהעמוד נותן להם, כמו בשליטה קולית אמיתית. כלים אמיתיים מבינים יותר דרכים להגיד דברים ומתקנים את הטעויות של עצמם; אָנְסִי קורא רק את מה שמוקלד או מוכתב לתיבה.',
+  'exp.voiceControl.command': 'פקודה',
+  'exp.voiceControl.run': 'הפעלה',
+  'exp.voiceControl.examples':
+    'נסו: לחץ על Buy now · הצג מספרים · לחץ על 3 · גלול למטה · הקלד שלום',
+  'exp.voiceControl.examplesOther': 'גם באנגלית:',
+  'exp.voiceControl.results': 'מה הפקודות עשו',
+  'exp.voiceControl.dictation.mac':
+    'כדי לדבר במקום להקליד, לחצו בתיבה והפעילו את ההכתבה של ה־Mac: מקש המיקרופון, או Fn פעמיים. אָנְסִי עצמו לא שולח שום דבר לשום מקום.',
+  'exp.voiceControl.dictation.windows':
+    'כדי לדבר במקום להקליד, לחצו בתיבה והקישו Windows+H כדי להפעיל הקלדה קולית. אָנְסִי עצמו לא שולח שום דבר לשום מקום.',
+  'exp.voiceControl.dictation.other':
+    'הקלידו כאן את הפקודות. אם יש במחשב כלי הכתבה, גם הוא יכול למלא את התיבה; אָנְסִי עצמו לא שולח שום דבר לשום מקום.',
+  'exp.voiceControl.nothingYet': 'הפעילו פקודה, ואָנְסִי יגיד מה קרה.',
+  'exp.voiceControl.result.clicked': 'נלחץ ״{name}״.',
+  'exp.voiceControl.result.focused': 'הפוקוס ב״{name}״. אמרו ״הקלד״ ואת המילים.',
+  'exp.voiceControl.result.numbers': 'מוספרו {count} דברים שאפשר ללחוץ עליהם. אמרו ״לחץ על״ ומספר.',
+  'exp.voiceControl.result.hidden': 'המספרים הוסתרו.',
+  'exp.voiceControl.result.scrolled': 'נגלל.',
+  'exp.voiceControl.result.typed': 'הוקלד בשדה.',
+  'exp.voiceControl.result.noField': 'אין שדה בפוקוס. לחצו קודם על שדה לפי השם שלו.',
+  'exp.voiceControl.result.choose':
+    'דברים שעונים לשם הזה: {count}. לכל אחד יש עכשיו מספר; אמרו ״לחץ על״ ואת המספר שלו.',
+  'exp.voiceControl.result.mismatch':
+    'שום דבר לא נקרא ״{said}״. הפקד שמציג את המילים האלה נקרא ״{name}״, ולכן שליטה קולית לא מוצאת אותו לפי מה שהוא מציג.',
+  'exp.voiceControl.result.notFound': 'שום דבר בעמוד לא נקרא ״{said}״.',
+  'exp.voiceControl.result.unknown':
+    'אָנְסִי לא הבין. נסו ״לחץ על״ ושם, ״הצג מספרים״ או ״גלול למטה״.',
+  'exp.voiceControl.result.noPage': 'אין עמוד לתת לו את הפקודה.',
+  'exp.voiceControl.missed': 'מציג שם אחד, עונה לשם אחר',
+  'exp.voiceControl.shows': 'מציג ״{visible}״, נקרא ״{name}״',
 
   'exp.scan.what':
     'אָנְסִי מריץ את axe-core, הבודק שמאחורי Lighthouse ורוב כלי הנגישות, על העמוד כמו שהוא עכשיו, ומסביר כל תוצאה במילים פשוטות. בדיקות אוטומטיות תופסות בערך שליש מהמחסומים; שאר החוויות הן בשביל השאר.',
@@ -621,6 +659,8 @@ export const he: Record<MessageKey, string> = {
     'העמוד חוסם הגדלה. אנשים עם ראייה חלשה לא יכולים להגדיל אותו. הסירו user-scalable=no ו־maximum-scale.',
   'rule.tabindex':
     'tabindex גדול מ־0 כופה סדר מעבר משלו. מי שמשתמש במקלדת קופץ אז בעמוד בלי לצפות לזה. השתמשו ב־0 או ב־1- ותנו לסדר העמוד להחליט.',
+  'rule.label-content-name-mismatch':
+    'המילים שהפקד הזה מציג לא נמצאות בשם שלו. מי שמשתמש בשליטה קולית אומר את מה שהוא רואה, ושום דבר לא עונה. התחילו את השם במילים שרואים.',
   'rule.target-size':
     'הפקד הזה קטן מכדי לפגוע בו. אנשים עם רעד, או עם אגודלים גדולים, מפספסים אותו. הגדילו אותו ל־24 על 24 פיקסלים לפחות, או תנו לו מרווח.',
   'rule.scrollable-region-focusable':

@@ -4,9 +4,10 @@ import type { MessageKey } from '../../../shared/i18n'
 import type { KeyboardFinding, KeyboardReport } from '../../../shared/keyboard'
 import type { SwitchReport } from '../../../shared/motor'
 import { isExplainedRule, type ScanIssue, type ScanResult } from '../../../shared/scan'
+import { spokenTarget, type VoiceMismatch, type VoiceResult } from '../../../shared/voice'
 import { ansy } from '../lib/ansy'
 import { useCapture, type CaptureStart } from '../lib/findings'
-import { useT } from '../lib/i18n'
+import { useI18n, useT } from '../lib/i18n'
 
 const heading = 'mb-1 text-xs font-semibold uppercase tracking-wide text-ink-soft'
 
@@ -154,6 +155,157 @@ export function SwitchFindings({ report, onClear }: { report: SwitchReport; onCl
       <button type="button" className="btn mt-3" onClick={onClear} disabled={!report.steps}>
         {t('exp.switchAccess.clear')}
       </button>
+    </section>
+  )
+}
+
+/** The axe rule a voice miss breaks, so it is saved and checked again like a scan finding. */
+const labelInName = {
+  id: 'label-content-name-mismatch',
+  wcag: ['2.5.3'],
+  level: 'A' as const,
+  helpUrl: 'https://dequeuniversity.com/rules/axe/4.14/label-content-name-mismatch',
+}
+
+/** What the last command did, in a sentence. */
+export function voiceMessage(t: ReturnType<typeof useT>, said: string, result: VoiceResult | null) {
+  if (!result) return t('exp.voiceControl.result.noPage')
+  switch (result.outcome) {
+    case 'clicked':
+    case 'focused':
+      return t(`exp.voiceControl.result.${result.outcome}`, { name: result.name ?? '' })
+    case 'numbers':
+    case 'choose':
+      return t(`exp.voiceControl.result.${result.outcome}`, { count: result.count ?? 0 })
+    case 'mismatch':
+      return t('exp.voiceControl.result.mismatch', {
+        said: spokenTarget(said),
+        name: result.mismatch?.name ?? '',
+      })
+    case 'notFound':
+      return t('exp.voiceControl.result.notFound', { said: spokenTarget(said) })
+    default:
+      return t(`exp.voiceControl.result.${result.outcome}` as MessageKey)
+  }
+}
+
+/**
+ * Voice control's command box: type a command, or speak it into the box with
+ * the computer's own dictation. Ansy hears nothing itself.
+ */
+export function VoiceCommands({
+  mismatches,
+  platform,
+}: {
+  mismatches: VoiceMismatch[]
+  platform: string
+}) {
+  const t = useT()
+  const { locale } = useI18n()
+  const [text, setText] = useState('')
+  const [last, setLast] = useState<{ said: string; message: string } | null>(null)
+  const [busy, setBusy] = useState(false)
+  const dictation =
+    platform === 'darwin'
+      ? t('exp.voiceControl.dictation.mac')
+      : platform === 'win32'
+        ? t('exp.voiceControl.dictation.windows')
+        : t('exp.voiceControl.dictation.other')
+  const run = async () => {
+    const said = text.trim()
+    if (!said || busy) return
+    setBusy(true)
+    try {
+      const result = await ansy.experiences.voice(said)
+      setLast({ said, message: voiceMessage(t, said, result) })
+      setText('')
+    } finally {
+      setBusy(false)
+    }
+  }
+  const startFor = (item: VoiceMismatch): CaptureStart => ({
+    kind: 'scan',
+    severity: 'serious',
+    rule: {
+      ...labelInName,
+      help: t('exp.voiceControl.missed'),
+      description: t('rule.label-content-name-mismatch'),
+      wcag: [...labelInName.wcag],
+    },
+    element: { target: item.target, html: item.html },
+  })
+  return (
+    <section className="flex flex-col gap-2">
+      <form
+        className="flex flex-col gap-1"
+        onSubmit={(event) => {
+          event.preventDefault()
+          void run()
+        }}
+      >
+        <label htmlFor="ansy-voice-command" className="font-medium">
+          {t('exp.voiceControl.command')}
+        </label>
+        <div className="flex gap-2">
+          <input
+            id="ansy-voice-command"
+            className="field min-w-0 flex-1"
+            dir="auto"
+            autoComplete="off"
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+          />
+          <button type="submit" className="btn btn-primary" disabled={busy || !text.trim()}>
+            {t('exp.voiceControl.run')}
+          </button>
+        </div>
+      </form>
+      <p className="text-xs text-ink-soft">{t('exp.voiceControl.examples')}</p>
+      <p className="text-xs text-ink-soft">
+        {t('exp.voiceControl.examplesOther')}{' '}
+        {locale === 'he' ? (
+          <bdi lang="en" dir="ltr">
+            click Buy now · show numbers · scroll down
+          </bdi>
+        ) : (
+          <bdi lang="he" dir="rtl">
+            לחץ על · הצג מספרים · גלול למטה
+          </bdi>
+        )}
+      </p>
+      <p className="text-xs text-ink-soft">{dictation}</p>
+      <section>
+        <h4 className={heading}>{t('exp.voiceControl.results')}</h4>
+        <p aria-live="polite" aria-atomic="true">
+          {last ? (
+            <>
+              <span className="text-ink-soft">
+                {locale === 'he' ? '״' : '“'}
+                <bdi>{last.said}</bdi>
+                {locale === 'he' ? '״' : '”'}
+              </span>{' '}
+              {last.message}
+            </>
+          ) : (
+            t('exp.voiceControl.nothingYet')
+          )}
+        </p>
+        {mismatches.length > 0 && (
+          <div className="mt-2">
+            <h5 className="font-medium">{t('exp.voiceControl.missed')}</h5>
+            <ul className="list-disc ps-5">
+              {mismatches.map((item) => (
+                <li key={item.target}>
+                  <span dir="auto">
+                    {t('exp.voiceControl.shows', { visible: item.visible, name: item.name })}
+                  </span>{' '}
+                  <ShowOnPage target={item.target} /> <SaveFinding start={startFor(item)} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </section>
     </section>
   )
 }

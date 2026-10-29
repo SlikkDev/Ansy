@@ -124,6 +124,11 @@ export function registerIpc({ settings, findings, updater, getWindow, isDev }: D
     return site(event)?.experiences.show(target) ?? false
   })
   ipcMain.handle(channels.expKeyboardReset, (event) => site(event)?.experiences.resetCounting())
+  ipcMain.handle(channels.expVoice, (event, command: unknown) =>
+    typeof command === 'string' && command.length <= 500
+      ? (site(event)?.experiences.voice(command) ?? null)
+      : null,
+  )
 
   ipcMain.handle(channels.readerCommand, (event, command: unknown) => {
     if (isReaderCommand(command)) return site(event)?.experiences.readerCommand(command)

@@ -19,7 +19,7 @@ import type { MessageKey } from '../../../shared/i18n'
 import type { SiteState } from '../../../shared/ipc'
 import { useT, type T } from '../lib/i18n'
 import { switchSpeeds } from '../../../shared/motor'
-import { KeyboardFindings, ScanResults, SwitchFindings } from './Findings'
+import { KeyboardFindings, ScanResults, SwitchFindings, VoiceCommands } from './Findings'
 import { ReaderCard } from './ReaderCard'
 
 interface Props {
@@ -271,7 +271,11 @@ function ExperienceCard({
         </section>
       )}
 
-      {isActive && (isScan || id === 'tremor') && report && (
+      {isActive && id === 'voiceControl' && report?.voice && (
+        <VoiceCommands mismatches={report.voice.mismatches} platform={platform} />
+      )}
+
+      {isActive && (isScan || id === 'tremor' || id === 'voiceControl') && report && (
         <ScanResults scan={report.scan} scanning={report.scanning} />
       )}
 

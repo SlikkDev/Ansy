@@ -352,6 +352,108 @@ test('switch access scans the controls one by one and picks with Space', async (
     .toBe(false)
 })
 
+/** True when the switch highlight rests on the element the selector finds. */
+const ringOn = (selector: string) => `(() => {
+  const ring = document.querySelector('[data-ansy-switch] > div')
+  const el = document.querySelector(${JSON.stringify(selector)})
+  if (!ring || !el || ring.style.display !== 'block') return false
+  const box = ring.getBoundingClientRect()
+  const r = el.getBoundingClientRect()
+  return Math.abs(box.left - (r.left - 5)) < 2 && Math.abs(box.top - (r.top - 5)) < 2
+})()`
+
+const pressSwitch = () =>
+  sendToSite([
+    { type: 'keyDown', keyCode: 'Space' },
+    { type: 'keyUp', keyCode: 'Space' },
+  ])
+
+test('switch access finishes a purchase with a single key', async () => {
+  // Still open from the last test; a second click would close it.
+  if ((await card('Switch access').getAttribute('aria-expanded')) !== 'true') {
+    await card('Switch access').click()
+  }
+  await turnOn().click()
+  await page.getByRole('radio', { name: /Fast/ }).check()
+  await expect.poll(() => inSite<boolean>(ringOn('.buy')), { intervals: [100] }).toBe(true)
+  await pressSwitch()
+  await expect.poll(() => inSite<string>('document.title')).toBe('Checkout')
+  await expect
+    .poll(() => inSite<boolean>(ringOn('button[type=submit]')), {
+      intervals: [100],
+      timeout: 20_000,
+    })
+    .toBe(true)
+  await pressSwitch()
+  await expect.poll(() => inSite<string>('document.title')).toBe('Thank you')
+  await expect(page.getByText(/^Moves so far: \d+\. Picks: 2\.$/)).toBeVisible()
+  await turnOff().click()
+  await h.openShop()
+})
+
+/** Types a command into voice control's box and runs it. */
+const say = async (command: string) => {
+  const box = page.getByRole('textbox', { name: 'Command' })
+  await box.fill(command)
+  await box.press('Enter')
+  await expect(box).toHaveValue('')
+}
+
+test('voice control clicks by name, numbers what it can, and catches a name that differs from the label', async () => {
+  await card('Voice control').click()
+  await turnOn().click()
+  // The label-in-name rule runs on the whole page by itself.
+  await expect(page.locator('[data-rule="label-content-name-mismatch"]')).toBeVisible({
+    timeout: 20_000,
+  })
+  await noViolations('voice control card')
+
+  await say('click Add to basket')
+  await expect(
+    page.getByText(
+      /Nothing is named “Add to basket”\. The control that shows those words is named “Purchase item”/,
+    ),
+  ).toBeVisible()
+  await expect(page.getByText('Shows one name, answers to another')).toBeVisible()
+  await expect(page.getByText('Shows “Add to basket”, named “Purchase item”')).toBeVisible()
+
+  await say('show numbers')
+  await expect(page.getByText(/Numbered \d+ things you can click/)).toBeVisible()
+  await expect
+    .poll(() => inSite<number>('document.querySelectorAll("[data-ansy-voice] > div").length'))
+    .toBeGreaterThan(5)
+  await say('hide numbers')
+  await expect
+    .poll(() => inSite<number>('document.querySelectorAll("[data-ansy-voice] > div").length'))
+    .toBe(0)
+
+  await say('click email')
+  await say('type dana@example.com')
+  await expect
+    .poll(() => inSite<string>('document.querySelector("input[name=email]").value'))
+    .toBe('dana@example.com')
+
+  // Saved, the miss is a label-in-name finding that Check again runs axe on.
+  await page.getByRole('button', { name: 'Save as finding' }).first().click()
+  const dialog = page.getByRole('dialog', { name: 'Save a finding' })
+  await expect(dialog).toContainText('WCAG 2.5.3, level A')
+  await dialog.getByRole('button', { name: 'Save finding' }).click()
+  const finding = page.locator('[data-finding]').first()
+  await expect(finding).toContainText('Shows one name, answers to another')
+  await finding.getByRole('button', { name: 'Check again' }).click()
+  await expect(finding).toContainText('Still there', { timeout: 20_000 })
+  await page.getByRole('tab', { name: 'Experiences' }).click()
+
+  await say('Click Buy now.')
+  await expect.poll(() => inSite<string>('document.title')).toBe('Checkout')
+  await expect(page.getByText('Clicked “Buy now”.')).toBeVisible()
+  await turnOff().click()
+  await expect
+    .poll(() => inSite<boolean>('!!document.querySelector("[data-ansy-voice]")'))
+    .toBe(false)
+  await h.openShop()
+})
+
 test('the cards read in Hebrew too', async () => {
   await page.getByRole('button', { name: 'עברית' }).click()
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl')
