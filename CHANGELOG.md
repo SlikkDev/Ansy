@@ -6,6 +6,11 @@ All notable changes to Ansy are recorded here. The format follows
 
 ## Unreleased
 
+### Changed
+
+- The About dialog's Hebrew credit is spelled "נבנה על־ידי", with the maqaf, the
+  way the Slikk.Dev credit is written everywhere else.
+
 ## 2.0.0 - 2026-10-29
 
 ### Added
