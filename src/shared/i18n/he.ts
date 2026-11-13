@@ -91,8 +91,8 @@ export const he: Record<MessageKey, string> = {
   'about.license':
     'הקוד ברישיון MIT. השם והלוגו של Slikk.Dev הם סימני מסחר של Slikk.Dev, וכל הזכויות בהם שמורות.',
   'about.source': 'קוד המקור ב־GitHub',
-  'about.builtBy': 'נבנה על ידי',
-  'about.credit': 'נבנה על ידי Slikk.Dev, פותח את slikk.dev בדפדפן שלכם',
+  'about.builtBy': 'נבנה על־ידי',
+  'about.credit': 'נבנה על־ידי Slikk.Dev, פותח את slikk.dev בדפדפן שלכם',
   'about.close': 'סגירה',
   'about.updates': 'עדכונים',
   'about.privacy': 'הצהרת הפרטיות',
